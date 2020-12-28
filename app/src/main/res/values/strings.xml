@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name_cn">比邻</string>
+    <string name="app_name_en">Blin</string>
+
+
+    <string name="shared_preferences_name">BlinData</string>
+    <string name="shared_aes_key_name">AesKey</string>
+    <string name="shared_user_name">userName</string>
+    <string name="shared_password">password</string>
+</resources>
