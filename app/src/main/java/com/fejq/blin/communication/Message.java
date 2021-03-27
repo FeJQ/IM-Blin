@@ -1,4 +1,4 @@
-package com.fejq.communication;
+package com.fejq.blin.communication;
 
 public class Message
 {

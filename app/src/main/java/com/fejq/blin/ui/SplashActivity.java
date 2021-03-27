@@ -1,10 +1,11 @@
-package com.fejq.blin;
+package com.fejq.blin.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import com.fejq.blin.R;
 import com.fejq.utils.UtilAes;
 
 public class SplashActivity extends AppCompatActivity
