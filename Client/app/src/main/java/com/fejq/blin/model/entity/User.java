@@ -1,15 +1,25 @@
-package com.fejq.blin.model;
+package com.fejq.blin.model.entity;
 
 import org.json.JSONObject;
 
+
 public class User
 {
+
+    private int userId;
     private String userName;
     private String password;
     private String token;
 
+    public int getUserId()
+    {
+        return userId;
+    }
 
-
+    public void setUserId(int userId)
+    {
+        this.userId = userId;
+    }
 
     public String getUserName()
     {
@@ -31,8 +41,6 @@ public class User
         this.password = password;
     }
 
-
-
     public String getToken()
     {
         return token;
@@ -42,4 +50,15 @@ public class User
     {
         this.token = token;
     }
+
+    public User(){};
+
+    public User(int userId,String userName,String token)
+    {
+        this.userId=userId;
+        this.userName=userName;
+        this.token=token;
+    }
+
+
 }

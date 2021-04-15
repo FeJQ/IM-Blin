@@ -4,10 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import service.Status;
 
-import java.sql.ResultSet;
-import java.sql.Time;
 import java.util.*;
 
 public class TokenUtil
@@ -92,23 +89,8 @@ public class TokenUtil
             Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT jwt = verifier.verify(_token);
-            String sql = "select * from user_info where token=?";
-            List<Object> params = new ArrayList<>();
-            params.add(_token);
-            ResultSet resultSet = DBHelper.executeQuery(sql, params);
-            if (resultSet.getRow() != 1)
-            {
-                return false;
-            }
-            String token = resultSet.getString("token");
-            java.sql.Date tokenFailureTime = resultSet.getDate("tokenFailureTime");
-            boolean validToken = (token != null && token.equals(_token));
-            boolean validTokenFailureTime = (tokenFailureTime != null && (tokenFailureTime.getTime() - System.currentTimeMillis() > 0));
-            if (validToken && validTokenFailureTime)
-            {
-                return true;
-            }
-            return false;
+
+            return true;
         }
         catch (Exception e)
         {

@@ -1,4 +1,4 @@
-package com.fejq.blin.model.message;
+package com.fejq.blin.common;
 
 public class Action
 {

@@ -1,7 +1,7 @@
 package model.message;
 
 import com.alibaba.fastjson.JSONObject;
-import service.Status;
+import common.Status;
 import service.UserService;
 
 public class LoginFirstMessage extends Message
@@ -24,8 +24,8 @@ public class LoginFirstMessage extends Message
         JSONObject root = new JSONObject();
         root.put("uuid", getUuid());
 
-        Status status = UserService.LoginFirst(userName, password);
-        root.put("status",status.toString());
+        Status status = UserService.loginFirst(userName, password);
+        root.put("status",status);
 
         return root.toJSONString();
     }

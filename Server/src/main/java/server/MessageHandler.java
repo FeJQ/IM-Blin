@@ -1,3 +1,5 @@
+package server;
+
 import com.alibaba.fastjson.JSONObject;
 import common.Action;
 import common.RequestMapping;

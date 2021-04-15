@@ -14,12 +14,12 @@
         android:theme="@style/Theme.Blin">
 
         <activity android:name=".view.activity.LoginActivity" />
-        <activity android:name=".view.activity.FriendActivity" />
-        <activity android:name=".view.activity.RecentChatActivity" />
         <activity
             android:name=".view.login.LoginActivity"
             android:label="@string/title_activity_login" />
         <activity android:name=".view.activity.SplashActivity" />
+
+
         <activity android:name=".view.activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

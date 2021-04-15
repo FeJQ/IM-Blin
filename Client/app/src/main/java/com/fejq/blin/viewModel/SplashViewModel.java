@@ -1,24 +1,21 @@
 package com.fejq.blin.viewModel;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 
 import com.fejq.blin.App;
-import com.fejq.blin.R;
+import com.fejq.blin.database.Service;
+import com.fejq.blin.model.entity.User;
 
 public class SplashViewModel
 {
     public boolean checkUserToken()
     {
         Context context = App.getContext();
-        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.shared_preference_name), context.MODE_PRIVATE);
-
-        String savedUserName = sharedPreferences.getString(context.getString(R.string.shared_user_name), null);
-        String savedToken = sharedPreferences.getString(context.getString(R.string.shared_token), null);
-        if (savedUserName == null || savedToken == null)
+        User mainUser = Service.getMainUser();
+        if(mainUser==null || mainUser.getToken()==null)
         {
             return false;
         }
-        return false;
+        return true;
     }
 }

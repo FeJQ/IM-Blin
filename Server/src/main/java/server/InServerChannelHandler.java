@@ -1,22 +1,27 @@
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.util.CharsetUtil;
-import io.netty.util.concurrent.GlobalEventExecutor;
+package server;
 
-public class ServerChannelHandler extends SimpleChannelInboundHandler<String>
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+
+public class InServerChannelHandler extends SimpleChannelInboundHandler<String>
 {
+    /**
+     * 通道被激活时触发
+     * @param ctx 上下文
+     * @throws Exception
+     */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception
     {
         System.out.println("channelActive:" + ctx.channel().remoteAddress());
     }
 
+    /**
+     * 添加处理器时触发
+     * @param ctx
+     * @throws Exception
+     */
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception
     {
@@ -24,6 +29,12 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<String>
     }
 
 
+    /**
+     * 接收到客户端的消息时触发
+     * @param ctx
+     * @param msg
+     * @throws Exception
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception
     {

@@ -6,10 +6,8 @@ import android.content.SharedPreferences;
 
 import com.fejq.blin.App;
 import com.fejq.blin.R;
-import com.fejq.blin.model.message.LoginFirstMessage;
-import com.fejq.blin.model.message.Message;
-import com.fejq.blin.model.User;
-import com.fejq.blin.view.activity.RecentChatActivity;
+import com.fejq.blin.model.message.Request;
+import com.fejq.blin.model.entity.User;
 import com.fejq.utils.ToastUtil;
 
 public class LoginViewModel
@@ -31,21 +29,19 @@ public class LoginViewModel
                 ToastUtil.showShortToast(context, "用户名或密码格式错误");
                 return;
             }
-            Message message = new LoginFirstMessage(user);
-            message.send((code, msg, data) -> {
+            Request request = new Request().login(user);
+            request.send((code, msg, data) -> {
                 if (code == 0)
                 {
+                    int userId = data.getInt("userId");
                     String token = data.getString("token");
                     ToastUtil.showShortToast(context, msg);
-                    Intent intent = new Intent(context, RecentChatActivity.class);
                 }
                 else
                 {
                     ToastUtil.showShortToast(context, msg);
                 }
             });
-
-
         }
         catch (Exception e)
         {

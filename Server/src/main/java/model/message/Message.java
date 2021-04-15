@@ -1,7 +1,5 @@
 package model.message;
 
-import service.Status;
-
 public abstract class Message
 {
     private String uuid;

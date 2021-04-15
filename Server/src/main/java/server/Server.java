@@ -1,3 +1,5 @@
+package server;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -37,14 +39,15 @@ public class Server
 //                                engine.setUseClientMode(false);
 //                                pipeline.addLast("ssl", new SslHandler(engine));
 //                            }
-                            // http-request解码器
-                            // http服务器端对request解码
+                            // 添加解码器
                             pipeline.addLast("decoder", new StringDecoder());
-                            // http-response解码器
-                            // http服务器端对response编码
+                            // 添加编码器
                             pipeline.addLast("encoder", new StringEncoder());
-                            // 添加 handler
-                            pipeline.addLast("handler", new ServerChannelHandler());
+                            // 添加入站 handler
+                            pipeline.addLast("in_handler", new InServerChannelHandler());
+                            // 添加出站 handler
+                            pipeline.addLast("out_handle", new OutServerChannelHandler());
+
 
                         }
                     });

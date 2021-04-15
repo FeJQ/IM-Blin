@@ -31,8 +31,8 @@ public class SplashActivity extends AppCompatActivity
     {
         if (splashViewModel.checkUserToken())
         {
-            Intent intent = new Intent(this, RecentChatActivity.class);
-            startActivity(intent);
+            //Intent intent = new Intent(this, RecentChatActivity.class);
+            //startActivity(intent);
         }
         else
         {

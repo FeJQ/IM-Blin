@@ -1,7 +1,7 @@
 package com.fejq.blin.model;
 
 import com.fejq.blin.common.MessageQueue;
-import com.fejq.blin.model.message.Message;
+import com.fejq.blin.model.message.Request;
 import com.fejq.blin.net.TcpClient;
 
 import org.json.JSONObject;
@@ -20,16 +20,16 @@ public class Client extends TcpClient
     }
 
     // 客户端待发送的消息队列
-    private MessageQueue<Message> messageQueue;
+    private MessageQueue<Request> messageQueue;
 
     // 添加消息到消息队列
-    public void pushMessage(Message message)
+    public void pushMessage(Request request)
     {
-        messageQueue.push(message);
+        messageQueue.push(request);
     }
 
     // 从消息队列中取出消息
-    public Message popMessage()
+    public Request popMessage()
     {
         return messageQueue.next();
     }

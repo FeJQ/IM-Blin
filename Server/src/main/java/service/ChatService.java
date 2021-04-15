@@ -11,7 +11,7 @@ public class ChatService extends BaseService
      */
     public void sendMessageToUser(int senderId,int receiverId,String message,String token)
     {
-        if(!checkToken())
+        if(checkToken(senderId,token)!=OK)
         {
             return;
         }
@@ -26,7 +26,7 @@ public class ChatService extends BaseService
      */
     public void sendMessageToGroup(int senderId,int groupId,String message,String token)
     {
-        if(!checkToken())
+        if(checkToken(senderId,token)!=OK)
         {
             return;
         }

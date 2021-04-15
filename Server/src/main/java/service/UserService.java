@@ -1,71 +1,58 @@
 package service;
 
-import common.RequestMapping;
-import util.DBHelper;
+import common.Status;
+import dao.UserDao;
+import model.sql.UserInfo;
 import util.TokenUtil;
 import util.TokenUtil.Token;
 
-import java.sql.Date;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import service.Status.Code;
+import common.Status.Code;
 
-public class UserService
+public class UserService extends BaseService
 {
     /**
      * 用户名密码登录
      *
-     * @param _userName 用户名
-     * @param _password 密码
+     * @param userName 用户名
+     * @param password 密码
      * @return 状态信息
      * @throws SQLException
      */
-    public static Status LoginFirst(String _userName, String _password)
+    public static Status loginFirst(String userName, String password)
     {
         Status status;
         try
         {
-            String sql = "select * from user_info where userName=?";
-            List<Object> params = new ArrayList<>();
-            params.add(_userName);
-            ResultSet res = DBHelper.executeQuery(sql, params);
-            int i=0;
-            while (res.next())
-            {
-                i++;
-            }
+            // 检查用户名是否存在
+            List<UserInfo> userInfoList = UserDao.selectUserByUserName(userName);
+            UserInfo userInfo=userInfoList.get(0);
 
-
-            if (res.getRow() != 1)
+            if (userInfoList.size() == 0)
             {
                 status = new Status(Code.USER_NOT_EXIST);
                 return status;
             }
-            String password = res.getString("password");
-            if (!password.equals(_password))
+            // 检查密码是否正确
+            if (!password.equals(userInfo.getPassword()))
             {
                 status = new Status(Code.INCORRECT_USER_NAME_OR_PASSWORD);
                 return status;
             }
-            Token token = TokenUtil.make(_userName, _password);
-            sql = "update user_info set token=?,tokenFailureTime=? where userId=?";
-            int userId = res.getInt("userId");
-            params = new ArrayList<>();
-            params.add(token.getValue());
-            params.add(token.getFailureTime());
-            params.add(userId);
-            int count = DBHelper.executeOperate(sql, params);
+            // 生成Token
+            Token token = TokenUtil.make(userName, password);
+            int count = UserDao.updateUserToken(userInfo.getUserId(), token);
             if (count != 1)
             {
                 status = new Status(Code.UNKNOWN_ERROR);
                 return status;
             }
             Map<String, Object> dataMap = new HashMap<>();
+            dataMap.put("userId",userInfo.getUserId());
             dataMap.put("token", token.getValue());
             status = new Status(Code.OK.code(), "登录成功", dataMap);
             return status;
@@ -82,20 +69,27 @@ public class UserService
     /**
      * 自动登录
      *
-     * @param _token
+     * @param userId 用户Id
+     * @param token 令牌
      * @return 状态信息
      * @throws SQLException
      */
-    public static Status LoginWithToken(String _token)
+    public static Status loginWithToken(int userId, String token)
     {
         Status status;
-        if (!TokenUtil.verify(_token))
+        int result = checkToken(userId,token);
+        if(result==USER_NOT_EXIST)
         {
-            status = new Status(Code.TOKEN_FAILURE);
-            return status;
+            return new Status(Code.USER_NOT_EXIST);
         }
-        status = new Status(Code.OK, "登录成功");
-        return status;
+        else if (result == OK)
+        {
+            return new Status(Code.OK, "登录成功");
+        }
+        else
+        {
+            return new Status(Code.TOKEN_FAILURE);
+        }
     }
 
     /**
@@ -105,29 +99,26 @@ public class UserService
      * @param password 密码
      * @return 状态信息
      */
-    public static Status signIn(String userName, String password)
+    public static Status register(String userName, String password)
     {
         Status status;
         try
         {
+            // 检查用户名密码格式
             if (userName.length() > 32 || userName.length() < 1)
             {
                 status = new Status(Code.USER_NAME_NOT_VALID);
                 return status;
             }
-            String sql = "select * from user_info where userName=?";
-            List<Object> params = new ArrayList<>();
-            params.add(userName);
-            ResultSet res = DBHelper.executeQuery(sql, params);
-            if (res.getRow() > 0)
+            // 检查用户名是否已被注册
+            List<UserInfo> userInfoList = UserDao.selectUserByUserName(userName);
+            if (userInfoList.size() > 0)
             {
                 status = new Status(Code.USER_NAME_ALREADY_EXIST);
                 return status;
             }
-            sql = "insert into user_info(userName,password) values(?,?)";
-            params.add(userName);
-            params.add(password);
-            int count = DBHelper.executeOperate(sql, params);
+            // 注册用户
+            int count = UserDao.insertUser(userName, password);
             if (count > 0)
             {
                 status = new Status(Code.OK, "注册成功");
@@ -145,30 +136,31 @@ public class UserService
     /**
      * 登出
      *
+     * @param userId
      * @param token
      * @return 状态信息
      */
-    public static Status logout(String token)
+    public static Status logout(int userId, String token)
     {
         Status status;
         try
         {
-            String sql = "select * from user_info where token=?";
-            List<Object> params = new ArrayList<>();
-            params.add(token);
-            ResultSet resultSet = DBHelper.executeQuery(sql, params);
-            if (resultSet.getRow() == 0)
+            if(checkToken(userId,token)!=OK)
             {
-                status = new Status(Code.INVALID_TOKEN);
-                return status;
+                return new Status(Code.TOKEN_FAILURE);
             }
-            sql = "update user_info set token=NULL,tokenFailureTime=NULL where token=?";
-            params = new ArrayList<>();
-            params.add(token);
-            int count = DBHelper.executeOperate(sql, params);
-            if (count > 0)
+            List<UserInfo> userInfoList = UserDao.selectUserByUserId(userId);
+            if (userInfoList.size() == 0)
             {
-                status = new Status(Code.OK, "登出成功");
+                return new Status(Code.USER_NOT_EXIST);
+            }
+            if(userInfoList.get(0).getToken()!=null)
+            {
+                int count = UserDao.clearToken(userId);
+                if (count > 0)
+                {
+                    status = new Status(Code.OK, "登出成功");
+                }
             }
         }
         catch (Exception e)
@@ -178,4 +170,6 @@ public class UserService
         status = new Status(Code.UNKNOWN_ERROR);
         return status;
     }
+
+
 }

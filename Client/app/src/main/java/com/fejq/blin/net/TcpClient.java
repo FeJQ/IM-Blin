@@ -1,14 +1,6 @@
 package com.fejq.blin.net;
 
-import android.util.Log;
-
-import com.fejq.blin.common.MessageQueue;
 import com.fejq.blin.config.Const;
-import com.fejq.blin.model.message.Message;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -30,25 +22,29 @@ public class TcpClient
      */
     public void connect()
     {
-        EventLoopGroup eventExecutors = new NioEventLoopGroup();
-        try
-        {
-            Bootstrap bootstrap = new Bootstrap();
-            bootstrap.group(eventExecutors)
-                    .channel(NioSocketChannel.class)
-                    .option(ChannelOption.SO_KEEPALIVE, true)
-                    .handler(new TcpClientChannelInitializer());
+        new Thread(() -> {
+            EventLoopGroup eventExecutors = new NioEventLoopGroup();
+            try
+            {
+                Bootstrap bootstrap = new Bootstrap();
+                bootstrap.group(eventExecutors)
+                        .channel(NioSocketChannel.class)
+                        .option(ChannelOption.SO_KEEPALIVE, true)
+                        .handler(new TcpClientChannelInitializer());
 
-            ChannelFuture channelFuture = bootstrap.connect(Const.SERVER_ADDRESS, Const.PORT).sync();
-            // 等待与服务器断开连接
-            channelFuture.channel().closeFuture().addListener(future -> {
-                Log.i("Netty","通道被关闭");
+                ChannelFuture channelFuture = bootstrap.connect(Const.SERVER_ADDRESS, Const.PORT).sync();
+                // 等待与服务器断开连接
+                channelFuture.channel().closeFuture().sync();
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+            finally
+            {
                 eventExecutors.shutdownGracefully();
-            });
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
+            }
+        }).start();
+
     }
 }
