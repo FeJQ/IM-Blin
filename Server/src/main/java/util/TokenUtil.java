@@ -36,7 +36,8 @@ public class TokenUtil
     }
 
     //设置过期时间
-    private static final long EXPIRE_DATE = 1000 * 60 * 60 * 24 * 30;
+    private static final long HOUR=1000 * 60 * 60;
+    private static final  long EXPIRE_DATE = HOUR*24*30;
     //token秘钥
     private static final String TOKEN_SECRET = "W5EQIUBFKKJB9JHK020RQWE";
 

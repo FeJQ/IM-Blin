@@ -6,13 +6,11 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 import androidx.databinding.DataBindingUtil;
-import androidx.databinding.ViewDataBinding;
 
 import com.fejq.blin.R;
 import com.fejq.blin.databinding.ChatListEntryBinding;
 import com.fejq.blin.model.entity.Chat;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ChatListViewAdapter extends BaseAdapter
@@ -66,44 +64,11 @@ public class ChatListViewAdapter extends BaseAdapter
             //去除convertView中bangding的dataBinding
             chatListEntryBinding = DataBindingUtil.getBinding(convertView);
         }
+        // 为list_entry绑定entry
         Chat chat = chatList.get(position);
         chatListEntryBinding.setChatEntity(chat);
 
 
         return convertView;
-    }
-
-    private class OnBtnClickListener implements View.OnClickListener
-    {
-        private int stats;//1,修改；2，删除
-        private Chat chat;
-        private int position;
-
-        OnBtnClickListener(int stats, Chat chat)
-        {
-            this.stats = stats;
-            this.chat = chat;
-        }
-
-        OnBtnClickListener(int stats, int position)
-        {
-            this.stats = stats;
-            this.position = position;
-        }
-
-        @Override
-        public void onClick(View v)
-        {
-            switch (stats)
-            {
-                case 1:
-                    chat.entryName.set("修改后的名字");
-                    break;
-                case 2:
-                    chatList.remove(position);
-                    notifyDataSetChanged();
-                    break;
-            }
-        }
     }
 }

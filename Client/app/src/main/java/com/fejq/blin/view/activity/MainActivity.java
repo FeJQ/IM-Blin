@@ -6,17 +6,13 @@ import androidx.fragment.app.FragmentManager;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log;
 
 import com.fejq.blin.R;
 import com.fejq.blin.view.adapter.ViewPagerAdapter;
-import com.fejq.blin.view.fragment.base.PagerFragment;
-import com.fejq.blin.view.fragment.TabFragment;
-import com.fejq.blin.view.fragment.TitleFragment;
-import com.fejq.blin.viewModel.ChatPagerViewModel;
-
-import java.nio.channels.NonWritableChannelException;
-import java.util.List;
+import com.fejq.blin.view.fragment.home.base.PagerFragment;
+import com.fejq.blin.view.fragment.home.TabFragment;
+import com.fejq.blin.view.fragment.home.TitleFragment;
 
 public class MainActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener
 {
@@ -27,7 +23,6 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
     private TitleFragment titleFragment;
     private TabFragment tabFragment;
     private ViewPager viewPager;
-
     private ViewPagerAdapter adapter;
 
     //默认页面
@@ -38,11 +33,7 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initView();
-    }
 
-    private void initView()
-    {
         titleFragment = (TitleFragment) fragmentManager.findFragmentById(R.id.main_top_fragment);
         tabFragment = new TabFragment();
         tabFragment.setOnTabClickListenser(tab -> {
@@ -52,9 +43,12 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         viewPager.setAdapter(adapter = new ViewPagerAdapter(fragmentManager));
         viewPager.addOnPageChangeListener(this);
+
+
+        // 给ViewPager设置缓存界面数 有几页缓存几页
+        viewPager.setOffscreenPageLimit(3);
         setCurrentItem(DEFAULT_PAGE);
     }
-
 
     @Override
     public void onPageSelected(int position)
@@ -115,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
     // Used to load the 'native-lib' library on application startup.
     static
     {
-        System.loadLibrary("native-lib");
+        //System.loadLibrary("native-lib");
     }
 
 
@@ -123,5 +117,5 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
-    public native String stringFromJNI();
+    //public native String stringFromJNI();
 }

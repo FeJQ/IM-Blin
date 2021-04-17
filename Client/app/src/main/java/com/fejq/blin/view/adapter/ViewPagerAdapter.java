@@ -4,10 +4,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
-import com.fejq.blin.view.fragment.FriendPagerFragment;
-import com.fejq.blin.view.fragment.ChatPagerFragment;
-import com.fejq.blin.view.fragment.MinePagerFragment;
-import com.fejq.blin.view.fragment.base.PagerFragment;
+import com.fejq.blin.view.fragment.home.FriendPagerFragment;
+import com.fejq.blin.view.fragment.home.ChatPagerFragment;
+import com.fejq.blin.view.fragment.home.MinePagerFragment;
+import com.fejq.blin.view.fragment.home.base.PagerFragment;
 
 import java.util.ArrayList;
 

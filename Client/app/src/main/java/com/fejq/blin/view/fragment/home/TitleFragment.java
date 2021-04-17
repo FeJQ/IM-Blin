@@ -1,4 +1,4 @@
-package com.fejq.blin.view.fragment;
+package com.fejq.blin.view.fragment.home;
 
 import android.os.Bundle;
 
@@ -9,14 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.fejq.blin.R;
-import com.fejq.blin.view.fragment.base.PagerFragment;
 
 
-public class FriendPagerFragment extends PagerFragment
+public class TitleFragment extends Fragment
 {
-
-
-    public FriendPagerFragment()
+    public TitleFragment()
     {
         // Required empty public constructor
     }
@@ -33,6 +30,11 @@ public class FriendPagerFragment extends PagerFragment
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_pager_friend, container, false);
+        return inflater.inflate(R.layout.fragment_main_title, container, false);
+    }
+
+    public void setCurrentTab(int item)
+    {
+
     }
 }

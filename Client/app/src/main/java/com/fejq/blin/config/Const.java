@@ -2,7 +2,8 @@ package com.fejq.blin.config;
 
 public class Const
 {
-    public static final String SERVER_ADDRESS="192.168.43.161";
+    //public static final String SERVER_ADDRESS="192.168.43.161";
+    public static final String SERVER_ADDRESS="100.64.139.57";
     public static final int PORT=8899;
     public static final int TIMEOUT=400*1000;
 

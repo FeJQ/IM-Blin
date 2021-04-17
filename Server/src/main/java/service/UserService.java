@@ -2,11 +2,14 @@ package service;
 
 import common.Status;
 import dao.UserDao;
+import model.sql.ChatEntry;
+import model.sql.FriendMessage;
 import model.sql.UserInfo;
 import util.TokenUtil;
 import util.TokenUtil.Token;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +33,7 @@ public class UserService extends BaseService
         {
             // 检查用户名是否存在
             List<UserInfo> userInfoList = UserDao.selectUserByUserName(userName);
-            UserInfo userInfo=userInfoList.get(0);
+            UserInfo userInfo = userInfoList.get(0);
 
             if (userInfoList.size() == 0)
             {
@@ -52,7 +55,7 @@ public class UserService extends BaseService
                 return status;
             }
             Map<String, Object> dataMap = new HashMap<>();
-            dataMap.put("userId",userInfo.getUserId());
+            dataMap.put("userId", userInfo.getUserId());
             dataMap.put("token", token.getValue());
             status = new Status(Code.OK.code(), "登录成功", dataMap);
             return status;
@@ -70,15 +73,15 @@ public class UserService extends BaseService
      * 自动登录
      *
      * @param userId 用户Id
-     * @param token 令牌
+     * @param token  令牌
      * @return 状态信息
      * @throws SQLException
      */
     public static Status loginWithToken(int userId, String token)
     {
         Status status;
-        int result = checkToken(userId,token);
-        if(result==USER_NOT_EXIST)
+        int result = checkToken(userId, token);
+        if (result == USER_NOT_EXIST)
         {
             return new Status(Code.USER_NOT_EXIST);
         }
@@ -145,7 +148,7 @@ public class UserService extends BaseService
         Status status;
         try
         {
-            if(checkToken(userId,token)!=OK)
+            if (checkToken(userId, token) != OK)
             {
                 return new Status(Code.TOKEN_FAILURE);
             }
@@ -154,7 +157,7 @@ public class UserService extends BaseService
             {
                 return new Status(Code.USER_NOT_EXIST);
             }
-            if(userInfoList.get(0).getToken()!=null)
+            if (userInfoList.get(0).getToken() != null)
             {
                 int count = UserDao.clearToken(userId);
                 if (count > 0)
@@ -172,4 +175,102 @@ public class UserService extends BaseService
     }
 
 
+    /**
+     * 获取消息列表
+     *
+     * @param userId 用户Id
+     * @param token  用户token
+     * @return
+     */
+    public static Status getChatList(int userId, String token)
+    {
+        try
+        {
+            if (checkToken(userId, token) != OK)
+            {
+                return new Status(Code.TOKEN_FAILURE);
+            }
+            List<ChatEntry> chatEntryList = UserDao.getChatEntryList(userId);
+
+            Map<String, Object> dataMap = new HashMap<>();
+            List<Object> chatList = new ArrayList<>();
+            for (int i = 0; i < chatEntryList.size(); i++)
+            {
+                Map<String, Object> chatListMap = new HashMap<>();
+                chatListMap.put("chatId", chatEntryList.get(i).getEntryId());
+                chatListMap.put("chatType", chatEntryList.get(i).getEntryType());
+                chatListMap.put("chatName", chatEntryList.get(i).getEntryName());
+                chatListMap.put("lastMessage", chatEntryList.get(i).getChatId());
+                chatListMap.put("lastMessageTime", chatEntryList.get(i).getChatId());
+                chatList.add(chatListMap);
+            }
+            dataMap.put("chatList", chatList);
+            return new Status(Code.OK.code(), "获取成功", dataMap);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return new Status(Code.UNKNOWN_ERROR);
+    }
+
+    /**
+     * 获取历史消息
+     * @param userId 用户Id
+     * @param token token
+     * @param chatId 联系人或群组Id
+     * @param chatType 群组 or 联系人
+     * @return
+     */
+    public static Status getChatHistory(int userId, String token, int chatId, String chatType)
+    {
+        if (checkToken(userId, token) != OK)
+        {
+            return new Status(Code.TOKEN_FAILURE);
+        }
+        if(chatType.equals("群组"))
+        {
+
+        }
+        else if(chatType.equals("联系人"))
+        {
+            List<FriendMessage> friendMessageList=UserDao.getFriendChatHistory(userId,chatId);
+            Map<String, Object> dataMap = new HashMap<>();
+            List<Object> messageList = new ArrayList<>();
+            for (int i = 0; i < friendMessageList.size(); i++)
+            {
+                Map<String, Object> messageListMap = new HashMap<>();
+                messageListMap.put("senderId", friendMessageList.get(i).getSenderId());
+                messageListMap.put("senderName", friendMessageList.get(i).getSenderName());
+                messageListMap.put("content", friendMessageList.get(i).getContent());
+                messageListMap.put("sendTime", friendMessageList.get(i).getSendTime().getTime());
+                messageList.add(messageListMap);
+            }
+            dataMap.put("chatHistoryList", messageList);
+            return new Status(Code.OK.code(), "获取成功", dataMap);
+        }
+        return new Status(Code.UNKNOWN_ERROR);
+    }
+
+    /**
+     * 发送私聊消息
+     * @param userId 用户Id
+     * @param token token
+     * @param friendId 好友Id
+     * @param content 内容
+     * @return
+     */
+    public static Status sendMessageToFriend(int userId, String token,int friendId,String content)
+    {
+        if (checkToken(userId, token) != OK)
+        {
+            return new Status(Code.TOKEN_FAILURE);
+        }
+        if(UserDao.insertFriendMessage(userId,friendId,content)>0)
+        {
+
+            return new Status(Code.OK,"发送成功");
+        }
+        return new Status(Code.UNKNOWN_ERROR,"发送失败");
+    }
 }

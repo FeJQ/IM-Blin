@@ -28,7 +28,6 @@ public class TcpClientChannelInitializer extends ChannelInitializer
 
         pipeline.addLast(new ChannelInboundHandlerAdapter()
         {
-
             /**
              * 通道被激活
              *
@@ -37,6 +36,8 @@ public class TcpClientChannelInitializer extends ChannelInitializer
             @Override
             public void channelActive(ChannelHandlerContext ctx)
             {
+                Client.getInstance().setConnected(true);
+                Log.e("Blin","服务器连接成功");
                 // 检测消息队列,并发送消息
                 new Thread(() -> {
                     while (Client.getInstance().sendable())
@@ -74,7 +75,7 @@ public class TcpClientChannelInitializer extends ChannelInitializer
                                         String msg = "请求超时";
                                         JSONObject data = new JSONObject();
                                         onRecvListener.onRecv(code, msg, data);
-                                        return;
+                                        break;
                                     }
                                     JSONObject status = Client.getInstance().getRecvMap().get(request.getUuid());
                                     if (status == null)
@@ -83,11 +84,11 @@ public class TcpClientChannelInitializer extends ChannelInitializer
                                         continue;
                                     }
                                     int code = status.getInt("code");
-                                    String msg = status.getString("request");
+                                    String msg = status.getString("message");
                                     JSONObject data = status.getJSONObject("data");
                                     onRecvListener.onRecv(code, msg, data);
                                     Client.getInstance().getRecvMap().remove(request.getUuid());
-                                    return;
+                                    break;
                                 }
                                 catch (Exception e)
                                 {

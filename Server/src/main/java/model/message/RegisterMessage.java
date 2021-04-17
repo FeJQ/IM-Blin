@@ -12,10 +12,8 @@ public class RegisterMessage extends Message
     public RegisterMessage(String uuid, JSONObject data)
     {
         super(uuid);
-        String userName = data.getString("userName");
-        String password = data.getString("password");
-        this.userName = userName;
-        this.password = password;
+        this.userName = data.getString("userName");
+        this.password = data.getString("password");
     }
 
     @Override

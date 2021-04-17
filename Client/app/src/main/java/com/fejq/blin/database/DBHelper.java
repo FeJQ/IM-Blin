@@ -20,7 +20,7 @@ public class DBHelper extends SQLiteOpenHelper
     }
 
 
-    //带有全部参数的构造函数，此构造函数是必须需要的。Eclipse和Android Studio均有自动填充功能
+    //带有全部参数的构造函数，此构造函数是必须需要的。
     public DBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version)
     {
         super(context, name, factory, version);
@@ -34,7 +34,34 @@ public class DBHelper extends SQLiteOpenHelper
     @Override
     public void onCreate(SQLiteDatabase db)
     {
-        db.execSQL("create table user(Id integer primary key autoincrement,userId integer,userName varchar(50),password varchar(50),token varchar(255),mainUser boolean)");
+        String sql="CREATE TABLE user (" +
+                "    Id       INTEGER       PRIMARY KEY AUTOINCREMENT," +
+                "    userId   INTEGER," +
+                "    userName VARCHAR (50)," +
+                "    password VARCHAR (50)," +
+                "    token    VARCHAR (255)," +
+                "    mainUser BOOLEAN" +
+                ");";
+        db.execSQL(sql);
+
+        sql="CREATE TABLE chatList (" +
+                "    Id              INTEGER       PRIMARY KEY AUTOINCREMENT," +
+                "    userId          INTEGER," +
+                "    chatImg         VARCHAR (255)," +
+                "    chatId          INTEGER," +
+                "    chatTypeId      INTEGER," +
+                "    chatName        VARCHAR (255)," +
+                "    lastMessage     VARCHAR (255)," +
+                "    lastMessageTime DATETIME," +
+                "    nonReadCount    INTEGER" +
+                ");";
+        db.execSQL(sql);
+
+        sql="CREATE TABLE chatType (" +
+                "    Id       INTEGER PRIMARY KEY," +
+                "    typeName VARCHAR" +
+                ");";
+        db.execSQL(sql);
     }
 
     @Override

@@ -6,16 +6,20 @@ import android.content.SharedPreferences;
 
 import com.fejq.blin.App;
 import com.fejq.blin.R;
+import com.fejq.blin.database.Service;
+import com.fejq.blin.model.Client;
 import com.fejq.blin.model.message.Request;
 import com.fejq.blin.model.entity.User;
+import com.fejq.blin.view.activity.LoginActivity;
+import com.fejq.blin.view.activity.MainActivity;
 import com.fejq.utils.ToastUtil;
 
 public class LoginViewModel
 {
     private User user = new User();
-    private Activity context;
+    private LoginActivity context;
 
-    public LoginViewModel(Activity activity)
+    public LoginViewModel(LoginActivity activity)
     {
         context = activity;
     }
@@ -35,6 +39,13 @@ public class LoginViewModel
                 {
                     int userId = data.getInt("userId");
                     String token = data.getString("token");
+                    User user = new User();
+                    user.setUserId(userId);
+                    user.setToken(token);
+                    Service.saveUserInfo(user);
+
+                    Intent intent=new Intent(context, MainActivity.class);
+                    context.startActivity(intent);
                     ToastUtil.showShortToast(context, msg);
                 }
                 else

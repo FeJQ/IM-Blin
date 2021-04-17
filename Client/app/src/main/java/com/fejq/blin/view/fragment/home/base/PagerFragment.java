@@ -1,4 +1,4 @@
-package com.fejq.blin.view.fragment.base;
+package com.fejq.blin.view.fragment.home.base;
 
 import androidx.fragment.app.Fragment;
 

@@ -53,6 +53,11 @@ public class User
 
     public User(){};
 
+    public User(int userId,String token)
+    {
+        this.userId=userId;
+        this.token=token;
+    }
     public User(int userId,String userName,String token)
     {
         this.userId=userId;

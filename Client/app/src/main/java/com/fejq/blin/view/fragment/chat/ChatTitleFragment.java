@@ -1,4 +1,4 @@
-package com.fejq.blin.view.fragment;
+package com.fejq.blin.view.fragment.chat;
 
 import android.os.Bundle;
 
@@ -9,13 +9,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.fejq.blin.R;
-import com.fejq.blin.view.fragment.base.PagerFragment;
 
 
-public class MinePagerFragment extends PagerFragment
+public class ChatTitleFragment extends Fragment
 {
 
-    public MinePagerFragment()
+
+    public ChatTitleFragment()
     {
         // Required empty public constructor
     }
@@ -25,6 +25,7 @@ public class MinePagerFragment extends PagerFragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
     }
 
     @Override
@@ -32,6 +33,6 @@ public class MinePagerFragment extends PagerFragment
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_pager_mine, container, false);
+        return inflater.inflate(R.layout.fragment_chat_title, container, false);
     }
 }

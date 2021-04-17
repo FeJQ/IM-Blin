@@ -13,7 +13,6 @@ public class Client extends TcpClient
 {
     // 客户端收到的消息Map
     private Map<String, JSONObject> recvMap;
-
     public Map<String, JSONObject> getRecvMap()
     {
         return recvMap;
@@ -21,14 +20,10 @@ public class Client extends TcpClient
 
     // 客户端待发送的消息队列
     private MessageQueue<Request> messageQueue;
-
-    // 添加消息到消息队列
     public void pushMessage(Request request)
     {
         messageQueue.push(request);
     }
-
-    // 从消息队列中取出消息
     public Request popMessage()
     {
         return messageQueue.next();
@@ -36,12 +31,10 @@ public class Client extends TcpClient
 
     // 标志客户端是否可以向服务器发送消息
     private boolean sendable = true;
-
     public boolean sendable()
     {
         return sendable;
     }
-
     public void setSendable(boolean val)
     {
         sendable = val;
@@ -49,7 +42,6 @@ public class Client extends TcpClient
 
     // Client唯一实例
     private static Client client;
-
     private Client()
     {
         messageQueue = new MessageQueue();
@@ -61,15 +53,12 @@ public class Client extends TcpClient
         if(client==null)
         {
             client=new Client();
-            Client.getTcpClient().connect();
         }
+        Client.getTcpClient().connect();
         return client;
     }
 
-
-
     private static TcpClient tcpClient;
-
     public static TcpClient getTcpClient()
     {
         if (tcpClient == null)
@@ -78,5 +67,31 @@ public class Client extends TcpClient
         }
         return tcpClient;
     }
+
+    private int currentUserId;
+    public int getCurrentUserId()
+    {
+        return currentUserId;
+    }
+    public void setCurrentUserId(int currentUserId)
+    {
+        this.currentUserId = currentUserId;
+    }
+
+    private String token;
+    public String getToken()
+    {
+        return token;
+    }
+    public void setToken(String token)
+    {
+        this.token = token;
+    }
+
+
+
+
+
+
 
 }

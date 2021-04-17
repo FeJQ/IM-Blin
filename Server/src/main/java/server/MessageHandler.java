@@ -3,10 +3,7 @@ package server;
 import com.alibaba.fastjson.JSONObject;
 import common.Action;
 import common.RequestMapping;
-import model.message.LoginFirstMessage;
-import model.message.LoginTokenMessage;
-import model.message.Message;
-import model.message.RegisterMessage;
+import model.message.*;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -44,16 +41,27 @@ public class MessageHandler
                 break;
             case Action.LOGIN_TOKEN:
                 message=new LoginTokenMessage(uuid,data);
-                message.handle();
+                response=message.handle();
                 break;
             case Action.REGISTER:
                 message=new RegisterMessage(uuid,data);
-                message.handle();
+                response=message.handle();
                 break;
             case Action.SEND_SINGLE:
+                message=new SendToFriendMessage(uuid,data);
+                response=message.handle();
                 break;
             case Action.SEND_GROUP:
                 break;
+            case Action.GET_RECENT_CHAT:
+                message= new GetChatListMessage(uuid,data);
+                response=message.handle();
+                break;
+            case Action.GET_FRIEND:
+                break;
+            case Action.GET_CHAT_HISTORY:
+                message=new GetChatHistoryMessage(uuid,data);
+                response=message.handle();
             default:break;
         }
         return response;

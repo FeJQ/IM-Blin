@@ -11,11 +11,11 @@ public class SplashViewModel
     public boolean checkUserToken()
     {
         Context context = App.getContext();
-        User mainUser = Service.getMainUser();
-        if(mainUser==null || mainUser.getToken()==null)
-        {
-            return false;
-        }
-        return true;
+//        User mainUser = Service.getMainUser();
+//        if(mainUser==null || mainUser.getToken()==null)
+//        {
+//            return false;
+//        }
+        return false;
     }
 }

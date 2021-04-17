@@ -9,7 +9,7 @@
 
     <fragment
         android:id="@+id/main_top_fragment"
-        android:name="com.fejq.blin.view.fragment.TitleFragment"
+        android:name="com.fejq.blin.view.fragment.home.TitleFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true" />
@@ -24,9 +24,14 @@
 
     </androidx.viewpager.widget.ViewPager>
 
+    <Button
+        android:id="@+id/btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="button"/>
     <fragment
         android:id="@+id/main_bottom_fragment"
-        android:name="com.fejq.blin.view.fragment.TabFragment"
+        android:name="com.fejq.blin.view.fragment.home.TabFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"/>

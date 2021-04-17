@@ -30,4 +30,9 @@ public class FriendMessage
     @Getter
     @Setter
     private String content;
+    //---------------------
+    @Getter
+    @Setter
+    private String senderName;
+
 }
