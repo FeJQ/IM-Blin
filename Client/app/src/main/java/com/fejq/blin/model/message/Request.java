@@ -149,11 +149,12 @@ public  class Request
     /**
      * 发送文字私聊信息
      * @param sender 发送者(token,userId
-     * @param reveiver 接收者(userId
+     * @param chatId 接收者(userId
      * @param text 内容
+     * @param chatType 群组 or 联系人
      * @return
      */
-    public Request sendTextMessageToUser(User sender, User reveiver, String text)
+    public Request sendTextMessage(User sender,int chatId, String text,String chatType)
     {
         try
         {
@@ -164,7 +165,8 @@ public  class Request
             data.put("token",sender.getToken());
             data.put("type", MessageType.TEXT);
             data.put("senderId", sender.getUserId());
-            data.put("receiverId", reveiver.getUserId());
+            data.put("chatId", chatId);
+            data.put("chatType",chatType);
             data.put("content",text);
             root.put("data",data);
             content=root.toString();
@@ -231,7 +233,7 @@ public  class Request
      * 获取聊天记录
      * @param me 用户(Id,token
      * @param chatId 对方Id(联系人或群组Id
-     * @param type 群组 or 联系人
+     * @param chatType 群组 or 联系人
      * @return
      */
     public Request getChatHistory(User me,int chatId,String chatType)

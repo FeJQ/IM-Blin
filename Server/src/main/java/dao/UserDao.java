@@ -113,12 +113,12 @@ public class UserDao
         params.add(userId);
         params.add(maxCount);
         ResultSet resultSet = DBHelper.executeQuery(sql, params);
-        List<FriendMessage> friendMessageList=new ArrayList<>();
+        List<FriendMessage> friendMessageList = new ArrayList<>();
         try
         {
             while (resultSet.next())
             {
-                FriendMessage friendMessage=new FriendMessage();
+                FriendMessage friendMessage = new FriendMessage();
                 friendMessage.setFriendMessageId(resultSet.getInt("friendMessageId"));
                 friendMessage.setSenderId(resultSet.getInt("senderId"));
                 friendMessage.setReceiverId(resultSet.getInt("receiverId"));
@@ -138,22 +138,51 @@ public class UserDao
         return friendMessageList;
     }
 
-    public static List<GroupMessage> getGroupChatHistory(int userId,int groupId)
+    public static List<GroupMessage> getGroupChatHistory(int userId, int groupId)
     {
         final int maxCount = 100;
-        String sql="select * from group_message where groupId=1 order by sendTime desc limit ?";
+        String sql = "select * from group_message where groupId=1 order by sendTime desc limit ?";
         return null;
     }
 
-    public static int insertFriendMessage(int userId,int friendId,String content)
+    public static FriendMessage insertFriendMessage(int userId, int friendId, String content)
     {
-        String sql="insert into friend_message(senderId,receiverId,messageTypeId,content) values(?,?,(select messageTypeId from message_type where typeName='文本'),?)";
+        String sql = "insert into friend_message(senderId,receiverId,messageTypeId,content) values(?,?,(select messageTypeId from message_type where typeName='文本'),?)";
         List<Object> params = new ArrayList<>();
         params.add(userId);
         params.add(friendId);
         params.add(content);
         int count = DBHelper.executeOperate(sql, params);
-        return count;
+        sql="SELECT LAST_INSERT_ID() AS id";
+        ResultSet resultSet=DBHelper.executeQuery(sql);
+        FriendMessage friendMessage=null;
+        try
+        {
+            resultSet.next();
+            int messageId = resultSet.getInt("id");
+            sql = " select *,userName as senderName from friend_message inner join user_info on friend_message.senderId=user_info.userId where friendMessageId=?";
+            params = new ArrayList<>();
+            params.add(messageId);
+            resultSet = DBHelper.executeQuery(sql, params);
+            if(resultSet.next())
+            {
+                friendMessage = new FriendMessage();
+                friendMessage.setFriendMessageId(resultSet.getInt("friendMessageId"));
+                friendMessage.setSenderId(resultSet.getInt("senderId"));
+                friendMessage.setReceiverId(resultSet.getInt("receiverId"));
+                friendMessage.setMessageTypeId(resultSet.getInt("messageTypeId"));
+                friendMessage.setSendTime(resultSet.getTimestamp("sendTime"));
+                friendMessage.setHaveRead(resultSet.getBoolean("haveRead"));
+                friendMessage.setContent(resultSet.getString("content"));
+                friendMessage.setSenderName(resultSet.getString("senderName"));
+            }
+
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+        return friendMessage;
     }
 
 }

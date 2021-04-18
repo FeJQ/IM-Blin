@@ -1,10 +1,14 @@
 package service;
 
+import com.alibaba.fastjson.JSON;
+import common.Action;
 import common.Status;
 import dao.UserDao;
+import io.netty.channel.Channel;
 import model.sql.ChatEntry;
 import model.sql.FriendMessage;
 import model.sql.UserInfo;
+import server.session.SessionFactory;
 import util.TokenUtil;
 import util.TokenUtil.Token;
 
@@ -15,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import common.Status.Code;
+import util.UuidUtil;
 
 public class UserService extends BaseService
 {
@@ -23,10 +28,11 @@ public class UserService extends BaseService
      *
      * @param userName 用户名
      * @param password 密码
+     * @param channel 该用户的通道
      * @return 状态信息
      * @throws SQLException
      */
-    public static Status loginFirst(String userName, String password)
+    public static Status loginFirst(String userName, String password, Channel channel)
     {
         Status status;
         try
@@ -58,6 +64,8 @@ public class UserService extends BaseService
             dataMap.put("userId", userInfo.getUserId());
             dataMap.put("token", token.getValue());
             status = new Status(Code.OK.code(), "登录成功", dataMap);
+            // 绑定用户 session
+            SessionFactory.getSession().bind(userInfo.getUserId(), channel);
             return status;
         }
         catch (Exception e)
@@ -74,10 +82,11 @@ public class UserService extends BaseService
      *
      * @param userId 用户Id
      * @param token  令牌
+     * @param channel 该用户的通道
      * @return 状态信息
      * @throws SQLException
      */
-    public static Status loginWithToken(int userId, String token)
+    public static Status loginWithToken(int userId, String token, Channel channel)
     {
         Status status;
         int result = checkToken(userId, token);
@@ -87,6 +96,8 @@ public class UserService extends BaseService
         }
         else if (result == OK)
         {
+            // 绑定用户session
+            SessionFactory.getSession().bind(userId,channel);
             return new Status(Code.OK, "登录成功");
         }
         else
@@ -216,9 +227,10 @@ public class UserService extends BaseService
 
     /**
      * 获取历史消息
-     * @param userId 用户Id
-     * @param token token
-     * @param chatId 联系人或群组Id
+     *
+     * @param userId   用户Id
+     * @param token    token
+     * @param chatId   联系人或群组Id
      * @param chatType 群组 or 联系人
      * @return
      */
@@ -228,13 +240,13 @@ public class UserService extends BaseService
         {
             return new Status(Code.TOKEN_FAILURE);
         }
-        if(chatType.equals("群组"))
+        if (chatType.equals("群组"))
         {
 
         }
-        else if(chatType.equals("联系人"))
+        else if (chatType.equals("联系人"))
         {
-            List<FriendMessage> friendMessageList=UserDao.getFriendChatHistory(userId,chatId);
+            List<FriendMessage> friendMessageList = UserDao.getFriendChatHistory(userId, chatId);
             Map<String, Object> dataMap = new HashMap<>();
             List<Object> messageList = new ArrayList<>();
             for (int i = 0; i < friendMessageList.size(); i++)
@@ -254,23 +266,44 @@ public class UserService extends BaseService
 
     /**
      * 发送私聊消息
-     * @param userId 用户Id
-     * @param token token
+     *
+     * @param userId   用户Id
+     * @param token    token
      * @param friendId 好友Id
-     * @param content 内容
+     * @param content  内容
      * @return
      */
-    public static Status sendMessageToFriend(int userId, String token,int friendId,String content)
+    public static Status sendMessageToFriend(int userId, String token, int friendId, String content)
     {
         if (checkToken(userId, token) != OK)
         {
             return new Status(Code.TOKEN_FAILURE);
         }
-        if(UserDao.insertFriendMessage(userId,friendId,content)>0)
+        FriendMessage friendMessage = UserDao.insertFriendMessage(userId, friendId, content);
+        if (friendMessage!=null)
         {
+            Channel channel = SessionFactory.getSession().getChannel(userId);
+            if(channel!=null)
+            {
+                Map<String,Object> root=new HashMap<>();
+                root.put("uuid",UuidUtil.make());
 
-            return new Status(Code.OK,"发送成功");
+                Map<String,Object> status=new HashMap<>();
+                root.put("status",status);
+                status.put("code",Action.RECEIVED_FRIEND_MESSAGE);
+                status.put("message","收到好友消息");
+
+                Map<String,Object> data=new HashMap<>();
+                status.put("data",data);
+                data.put("senderId",friendMessage.getSenderId());
+                data.put("receiverId",friendMessage.getReceiverId());
+                data.put("content",friendMessage.getContent());
+                data.put("time",friendMessage.getSendTime());
+                String jsonString = JSON.toJSONString(root);
+                channel.writeAndFlush(jsonString);
+            }
+            return new Status(Code.OK, "发送成功");
         }
-        return new Status(Code.UNKNOWN_ERROR,"发送失败");
+        return new Status(Code.UNKNOWN_ERROR, "发送失败");
     }
 }

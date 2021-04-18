@@ -37,6 +37,7 @@ public class Status
         public static final CodeDescriptor INVALID_TOKEN = new CodeDescriptor(6, "无效的身份信息");
 
         public static final CodeDescriptor UNKNOWN_ERROR = new CodeDescriptor(500, "未知错误");
+
     }
 
     //状态码

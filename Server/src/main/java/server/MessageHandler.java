@@ -3,6 +3,7 @@ package server;
 import com.alibaba.fastjson.JSONObject;
 import common.Action;
 import common.RequestMapping;
+import io.netty.channel.Channel;
 import model.message.*;
 
 import java.lang.annotation.Annotation;
@@ -12,10 +13,12 @@ import java.util.List;
 public class MessageHandler
 {
     private String message;
+    private Channel channel;
 
-    public MessageHandler(String message)
+    public MessageHandler(String message, Channel channel)
     {
         this.message = message;
+        this.channel=channel;
     }
 
     /**
@@ -31,39 +34,9 @@ public class MessageHandler
         JSONObject data = json.getJSONObject("data");
         String response = null;
 
-        Message message;
         System.out.println("message:"+data.toJSONString());
-        switch (action)
-        {
-            case Action.LOGIN_FIRST:
-                message = new LoginFirstMessage(uuid, data);
-                response=message.handle();
-                break;
-            case Action.LOGIN_TOKEN:
-                message=new LoginTokenMessage(uuid,data);
-                response=message.handle();
-                break;
-            case Action.REGISTER:
-                message=new RegisterMessage(uuid,data);
-                response=message.handle();
-                break;
-            case Action.SEND_SINGLE:
-                message=new SendToFriendMessage(uuid,data);
-                response=message.handle();
-                break;
-            case Action.SEND_GROUP:
-                break;
-            case Action.GET_RECENT_CHAT:
-                message= new GetChatListMessage(uuid,data);
-                response=message.handle();
-                break;
-            case Action.GET_FRIEND:
-                break;
-            case Action.GET_CHAT_HISTORY:
-                message=new GetChatHistoryMessage(uuid,data);
-                response=message.handle();
-            default:break;
-        }
+        Message messageObj = MessageFactory.make(action, uuid, data,channel);
+        response=messageObj.handle();
         return response;
     }
 }

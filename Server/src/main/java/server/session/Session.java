@@ -13,7 +13,7 @@ public interface Session {
      * @param channel 哪个 channel 要绑定会话
      * @param userId 会话绑定用户
      */
-    void bind(Channel channel, int userId);
+    void bind(int userId,Channel channel);
 
     /**
      * 解绑会话

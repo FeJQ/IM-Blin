@@ -1,32 +1,51 @@
 package com.fejq.blin.view.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.fejq.blin.R;
+import com.fejq.blin.databinding.ActivityLoginBinding;
+import com.fejq.blin.model.entity.ChatMessage;
 import com.fejq.blin.view.adapter.ChatMessageListViewAdapter;
 import com.fejq.blin.view.fragment.chat.ChatInputFragment;
 import com.fejq.blin.view.fragment.chat.ChatTitleFragment;
 import com.fejq.blin.viewModel.ChatViewModel;
 
+import java.util.List;
+
 public class ChatActivity extends AppCompatActivity
 {
     private ChatViewModel viewModel;
+    public ChatViewModel getViewModel()
+    {
+        return viewModel;
+    }
+
     private ChatTitleFragment titleFragment;
     private ChatInputFragment inputFragment;
     private FragmentManager fragmentManager = getSupportFragmentManager();
 
     private int chatId;
+
     public int getChatId()
     {
         return chatId;
     }
+
     private String chatType;
-    public String getChatType(){return chatType;}
+
+    public String getChatType()
+    {
+        return chatType;
+    }
+
     private String chatName;
 
     @Override
@@ -36,10 +55,9 @@ public class ChatActivity extends AppCompatActivity
         setContentView(R.layout.activity_chat);
 
         // 获取传过来的chatId
-
-        chatId=getIntent().getIntExtra("chatId", 0);
-        chatType= getIntent().getStringExtra("chatType");
-        chatName=getIntent().getStringExtra("chatName");
+        chatId = getIntent().getIntExtra("chatId", 0);
+        chatType = getIntent().getStringExtra("chatType");
+        chatName = getIntent().getStringExtra("chatName");
         if (chatId == 0)
         {
             onDestroy();
@@ -50,9 +68,12 @@ public class ChatActivity extends AppCompatActivity
 
         // 设置适配器
         ListView listView = (ListView) findViewById(R.id.chat_message_list);
-
         listView.setAdapter(viewModel.getAdapter());
+    }
 
-
+    public void addMessage(ChatMessage chatMessage)
+    {
+        List<ChatMessage> chatMessageList = viewModel.getChatMessageList();
+        chatMessageList.add(chatMessage);
     }
 }

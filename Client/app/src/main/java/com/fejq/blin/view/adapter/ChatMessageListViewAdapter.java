@@ -49,32 +49,39 @@ public class ChatMessageListViewAdapter extends BaseAdapter
     {
         //这个databinding也是根据布局文件item_mvvm而命名的
         ChatMessage chatMessage = chatMessageList.get(position);
-        ViewDataBinding viewDataBinding;
-        final int layoutId = chatMessage.type.get() == ChatMessage.RECEIVER ? R.layout.chat_message_list_left_entry : R.layout.chat_message_list_right_entry;
+        boolean left = chatMessage.type.get() == ChatMessage.RECEIVER ? true : false;
+        final int layoutId = left ? R.layout.chat_message_list_left_entry : R.layout.chat_message_list_right_entry;
+
         if (convertView == null)
         {
-            //创建一个databinding
-            viewDataBinding = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), layoutId, parent, false);
-            //获取convertView
-            convertView = viewDataBinding.getRoot();
+            if (left)
+            {
+                // 对方发来的消息
+                ChatMessageListLeftEntryBinding viewDataBinding = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), layoutId, parent, false);
+                convertView = viewDataBinding.getRoot();
+                viewDataBinding.setChatMessageEntry(chatMessage);
+            }
+            else
+            {
+                // 我发送的消息
+                ChatMessageListRightEntryBinding viewDataBinding = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), layoutId, parent, false);
+                convertView = viewDataBinding.getRoot();
+                viewDataBinding.setChatMessageEntry(chatMessage);
+            }
         }
         else
         {
-            //去除convertView中bangding的dataBinding
-            viewDataBinding = DataBindingUtil.getBinding(convertView);
-        }
-        if (chatMessage.type.get() == ChatMessage.RECEIVER)
-        {
-            // 对方发来的消息
-            ChatMessageListLeftEntryBinding chatMessageListLeftEntryBinding = (ChatMessageListLeftEntryBinding) viewDataBinding;
-            chatMessageListLeftEntryBinding.setChatMessageEntry(chatMessage);
-
-        }
-        else if (chatMessage.type.get() == ChatMessage.SENDER)
-        {
-            // 我发送的消息
-            ChatMessageListRightEntryBinding chatMessageListRightEntryBinding = (ChatMessageListRightEntryBinding) viewDataBinding;
-            chatMessageListRightEntryBinding.setChatMessageEntry(chatMessage);
+            ViewDataBinding binding = DataBindingUtil.getBinding(convertView);
+            if (binding instanceof ChatMessageListLeftEntryBinding)
+            {
+                ChatMessageListLeftEntryBinding viewDataBinding = (ChatMessageListLeftEntryBinding) binding;
+                viewDataBinding.setChatMessageEntry(chatMessage);
+            }
+            else if (binding instanceof ChatMessageListRightEntryBinding)
+            {
+                ChatMessageListRightEntryBinding viewDataBinding = (ChatMessageListRightEntryBinding) binding;
+                viewDataBinding.setChatMessageEntry(chatMessage);
+            }
         }
         return convertView;
     }

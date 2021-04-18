@@ -3,6 +3,7 @@ package server;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import server.session.SessionFactory;
 
 public class InServerChannelHandler extends SimpleChannelInboundHandler<String>
 {
@@ -15,6 +16,13 @@ public class InServerChannelHandler extends SimpleChannelInboundHandler<String>
     public void channelActive(ChannelHandlerContext ctx) throws Exception
     {
         System.out.println("channelActive:" + ctx.channel().remoteAddress());
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception
+    {
+        System.out.println("通道被关闭:"+ctx.channel().remoteAddress());
+        SessionFactory.getSession().unbind(ctx.channel());
     }
 
     /**
@@ -44,7 +52,7 @@ public class InServerChannelHandler extends SimpleChannelInboundHandler<String>
         if (msg instanceof String)
         {
             new Thread(() -> {
-                MessageHandler messageHandler = new MessageHandler((String) msg);
+                MessageHandler messageHandler = new MessageHandler((String) msg,ctx.channel());
                 String response = messageHandler.makeResponse();
                 ctx.writeAndFlush(Unpooled.copiedBuffer(response.getBytes()));
             }).start();

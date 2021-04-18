@@ -37,7 +37,7 @@ public class TcpClientChannelInitializer extends ChannelInitializer
             public void channelActive(ChannelHandlerContext ctx)
             {
                 Client.getInstance().setConnected(true);
-                Log.e("Blin","服务器连接成功");
+                Log.e("Blin", "服务器连接成功");
                 // 检测消息队列,并发送消息
                 new Thread(() -> {
                     while (Client.getInstance().sendable())
@@ -56,7 +56,7 @@ public class TcpClientChannelInitializer extends ChannelInitializer
                             continue;
                         }
                         new Thread(() -> {
-                            Log.i("uuid", request.getUuid());
+                            //Log.i("uuid", request.getUuid());
                             // 发送消息
                             ctx.writeAndFlush(Unpooled.buffer().writeBytes(request.getContent().getBytes()));
 
@@ -77,7 +77,7 @@ public class TcpClientChannelInitializer extends ChannelInitializer
                                         onRecvListener.onRecv(code, msg, data);
                                         break;
                                     }
-                                    JSONObject status = Client.getInstance().getRecvMap().get(request.getUuid());
+                                    JSONObject status = Client.getInstance().getResponseMap().get(request.getUuid());
                                     if (status == null)
                                     {
                                         Thread.sleep(20);
@@ -87,12 +87,13 @@ public class TcpClientChannelInitializer extends ChannelInitializer
                                     String msg = status.getString("message");
                                     JSONObject data = status.getJSONObject("data");
                                     onRecvListener.onRecv(code, msg, data);
-                                    Client.getInstance().getRecvMap().remove(request.getUuid());
+                                    Client.getInstance().getResponseMap().remove(request.getUuid());
                                     break;
                                 }
                                 catch (Exception e)
                                 {
-                                    e.printStackTrace();
+                                    //e.printStackTrace();
+                                    String s=e.getMessage();
                                 }
                             }
                         }).start();
@@ -112,19 +113,41 @@ public class TcpClientChannelInitializer extends ChannelInitializer
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception
             {
-                ByteBuf buf=(ByteBuf)msg;
+                ByteBuf buf = (ByteBuf) msg;
 
-                Log.i("Blin",msg.getClass().getName());
+                Log.i("Blin", msg.getClass().getName());
                 Log.i("Blin", buf.toString(CharsetUtil.UTF_8));
-                String message=buf.toString(CharsetUtil.UTF_8);
+                String message = buf.toString(CharsetUtil.UTF_8);
+
                 // 解析收到的消息
-                JSONObject root = new JSONObject(message);
+                JSONObject root=null;
+                try
+                {
+                    root = new JSONObject(message);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    return;
+                }
+
 
                 String uuid = root.getString("uuid");
                 JSONObject status = root.getJSONObject("status");
+                int code = status.getInt("code");
+                if (code > 5000)
+                {
+                    // 将收到的响应添加到Map
+                    Client.getInstance().getRecvMap().put(uuid, status);
+                    Log.i("Blin","received message==="+status.toString());
+                }
+                else
+                {
+                    // 将收到的响应添加到Map
+                    Client.getInstance().getResponseMap().put(uuid, status);
+                }
 
-                // 将收到的消息添加到Map
-                Client.getInstance().getRecvMap().put(uuid, status);
+
             }
 
             /**

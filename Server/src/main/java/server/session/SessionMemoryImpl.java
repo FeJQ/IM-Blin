@@ -7,21 +7,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionMemoryImpl implements Session {
 
-    private final Map<Integer, Channel> usernameChannelMap = new ConcurrentHashMap<>();
-    private final Map<Channel, Integer> channelUsernameMap = new ConcurrentHashMap<>();
+    private final Map<Integer, Channel> userIdChannelMap = new ConcurrentHashMap<>();
+    private final Map<Channel, Integer> channelUserIdMap = new ConcurrentHashMap<>();
     private final Map<Channel,Map<String,Object>> channelAttributesMap = new ConcurrentHashMap<>();
 
     @Override
-    public void bind(Channel channel, int userId) {
-        usernameChannelMap.put(userId, channel);
-        channelUsernameMap.put(channel, userId);
+    public void bind(int userId,Channel channel) {
+        userIdChannelMap.put(userId, channel);
+        channelUserIdMap.put(channel, userId);
         channelAttributesMap.put(channel, new ConcurrentHashMap<>());
     }
 
     @Override
     public void unbind(Channel channel) {
-        int userId = channelUsernameMap.remove(channel);
-        usernameChannelMap.remove(userId);
+        int userId  = channelUserIdMap.remove(channel);
+        userIdChannelMap.remove(userId);
         channelAttributesMap.remove(channel);
     }
 
@@ -37,11 +37,11 @@ public class SessionMemoryImpl implements Session {
 
     @Override
     public Channel getChannel(int userId) {
-        return usernameChannelMap.get(userId);
+        return userIdChannelMap.get(userId);
     }
 
     @Override
     public String toString() {
-        return usernameChannelMap.toString();
+        return userIdChannelMap.toString();
     }
 }

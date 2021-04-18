@@ -82,11 +82,14 @@ public class ChatPagerViewModel
                     chat.chatName.set(chatName);
                     chat.lastMessage.set(lastMessage);
                     chat.lastMessageTime.set(new Date(lastMessageTime));
-                    chatList.add(chat);
-                    Collections.sort(chatList, (Chat c1, Chat c2) -> c1.lastMessageTime.get().compareTo(c2.lastMessageTime.get()));
-                    adapter.notifyDataSetChanged();
 
-                    Log.i("chatListSize", chatList.size() + "");
+                    // 更新数据
+                    chatList.add(chat);
+
+                    // 更新界面
+                    context.runOnUiThread(()->{
+                        adapter.notifyDataSetChanged();
+                    });
                 }
             }
             else

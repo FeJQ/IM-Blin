@@ -18,6 +18,13 @@ public class Client extends TcpClient
         return recvMap;
     }
 
+    // 客户端收到的响应Map
+    private Map<String, JSONObject> responseMap;
+    public Map<String, JSONObject> getResponseMap()
+    {
+        return responseMap;
+    }
+
     // 客户端待发送的消息队列
     private MessageQueue<Request> messageQueue;
     public void pushMessage(Request request)
@@ -45,7 +52,7 @@ public class Client extends TcpClient
     private Client()
     {
         messageQueue = new MessageQueue();
-        recvMap=new HashMap<>();
+        responseMap=new HashMap<>();
     }
     // 获取Client唯一实例
     public static Client getInstance()

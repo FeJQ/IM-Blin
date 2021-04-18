@@ -11,6 +11,12 @@ import java.util.Date;
 
 public class ChatMessage
 {
+    public enum ChatMessageStatus
+    {
+        SENDING,
+        SEND_FAILED,
+        SEND_SUCCESSFUL
+    }
     public static final int SENDER=0;
     public static final int RECEIVER=1;
 
@@ -20,4 +26,5 @@ public class ChatMessage
     public ObservableField<String> time=new ObservableField();
     public ObservableField<Date> sendTime=new ObservableField();
     public ObservableInt type=new ObservableInt();
+    public ObservableField<ChatMessageStatus> status=new ObservableField(ChatMessageStatus.SEND_SUCCESSFUL);
 }
