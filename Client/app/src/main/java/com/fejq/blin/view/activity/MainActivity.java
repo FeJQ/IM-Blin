@@ -9,10 +9,20 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.fejq.blin.R;
+import com.fejq.blin.model.Client;
+import com.fejq.blin.model.entity.Chat;
+import com.fejq.blin.model.message.MessageTask;
 import com.fejq.blin.view.adapter.ViewPagerAdapter;
+import com.fejq.blin.view.fragment.home.ChatPagerFragment;
 import com.fejq.blin.view.fragment.home.base.PagerFragment;
 import com.fejq.blin.view.fragment.home.TabFragment;
 import com.fejq.blin.view.fragment.home.TitleFragment;
+
+import org.json.JSONObject;
+
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener
 {
@@ -27,12 +37,57 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
 
     //默认页面
     private static final int DEFAULT_PAGE = 0;
+    // 页面索引
+    private static final int CHAT_PAGE_INDEX=0;
+    private static final int FRIEND_PAGE_INDEX=1;
+    private static final int MINE_PAGE_INDEX=2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // 登录成功后才会跳转到该Activity
+        MessageTask.setOnRecvFriendMessageListener((uuid, status) -> {
+            int code=status.getInt("code");
+            String message = status.getString("message");
+            JSONObject data = status.getJSONObject("data");
+            int senderId = data.getInt("senderId");
+            int receiverId=data.getInt("receiverId");
+            String content = data.getString("content");
+            Date sendTime=new Date(data.getLong("sendTime"));
+            String senderName=data.getString("senderName");
+
+            ChatPagerFragment chatPagerFragment = (ChatPagerFragment)adapter.getItem(CHAT_PAGE_INDEX);
+            List<Chat> chatList = chatPagerFragment.getViewModel().getChatList();
+            for (int i = 0; i <chatList.size() ; i++)
+            {
+                Chat chat = chatList.get(i);
+                if(chat.chatId.get()== senderId || chat.chatId.get()==receiverId)
+                {
+                    // 该聊天项已存在,更新信息
+                    chat.lastMessage.set(content);
+                    chat.lastMessageTime.set(sendTime);
+                    return;
+                }
+            }
+            // 聊天项不存在,创建之
+            Chat chat=new Chat();
+            chat.chatName.set(senderName);
+            if(Client.getInstance().getCurrentUserId()==senderId)
+            {
+                chat.chatId.set(receiverId);
+            }
+            else
+            {
+                chat.chatId.set(senderId);
+            }
+            chat.lastMessage.set(content);
+            chat.lastMessageTime.set(sendTime);
+            chatList.add(chat);
+        });
+
 
         titleFragment = (TitleFragment) fragmentManager.findFragmentById(R.id.main_top_fragment);
         tabFragment = new TabFragment();
@@ -83,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
 
     /**
      * 通知其他fragment,页面切换了
+     *
      * @param item 页面索引
      */
     private void notifyPageChangeToFragments(int item)

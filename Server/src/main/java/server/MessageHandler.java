@@ -7,6 +7,7 @@ import io.netty.channel.Channel;
 import model.message.*;
 
 import java.lang.annotation.Annotation;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,9 +16,9 @@ public class MessageHandler
     private String message;
     private Channel channel;
 
-    public MessageHandler(String message, Channel channel)
+    public MessageHandler(MessageProtocol message, Channel channel)
     {
-        this.message = message;
+        this.message = new String(message.getContent(), Charset.forName("utf-8"));
         this.channel=channel;
     }
 

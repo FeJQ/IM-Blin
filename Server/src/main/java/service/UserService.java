@@ -273,7 +273,7 @@ public class UserService extends BaseService
      * @param content  内容
      * @return
      */
-    public static Status sendMessageToFriend(int userId, String token, int friendId, String content)
+    public static Status sendMessageToFriend(int userId, String token, int friendId, String content )
     {
         if (checkToken(userId, token) != OK)
         {
@@ -282,11 +282,12 @@ public class UserService extends BaseService
         FriendMessage friendMessage = UserDao.insertFriendMessage(userId, friendId, content);
         if (friendMessage!=null)
         {
-            Channel channel = SessionFactory.getSession().getChannel(userId);
+            Channel channel = SessionFactory.getSession().getChannel(friendId);
             if(channel!=null)
             {
                 Map<String,Object> root=new HashMap<>();
-                root.put("uuid",UuidUtil.make());
+                String uuid = UuidUtil.make();
+                root.put("uuid",uuid);
 
                 Map<String,Object> status=new HashMap<>();
                 root.put("status",status);
@@ -298,7 +299,8 @@ public class UserService extends BaseService
                 data.put("senderId",friendMessage.getSenderId());
                 data.put("receiverId",friendMessage.getReceiverId());
                 data.put("content",friendMessage.getContent());
-                data.put("time",friendMessage.getSendTime());
+                data.put("sendTime",friendMessage.getSendTime().getTime());
+                data.put("senderName",friendMessage.getSenderName());
                 String jsonString = JSON.toJSONString(root);
                 channel.writeAndFlush(jsonString);
             }

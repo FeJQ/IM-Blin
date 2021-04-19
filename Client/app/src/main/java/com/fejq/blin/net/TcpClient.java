@@ -63,6 +63,7 @@ public class TcpClient
                 eventExecutors.shutdownGracefully();
                 isConnected=false;
                 Log.e("Blin","服务器连接断开");
+                Client.getInstance().setSendable(false);
             }
         }).start();
 

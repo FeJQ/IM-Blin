@@ -5,8 +5,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import server.session.SessionFactory;
 
-public class InServerChannelHandler extends SimpleChannelInboundHandler<String>
+import java.nio.charset.Charset;
+
+public class InServerChannelHandler extends SimpleChannelInboundHandler<MessageProtocol>
 {
+
     /**
      * 通道被激活时触发
      * @param ctx 上下文
@@ -49,19 +52,23 @@ public class InServerChannelHandler extends SimpleChannelInboundHandler<String>
         //ByteBuf buf=(ByteBuf)msg;
         System.out.println(msg.getClass());
         System.out.println("channelRead:" + ctx.channel().remoteAddress() + "-" + msg);
-        if (msg instanceof String)
+        if (msg instanceof MessageProtocol)
         {
             new Thread(() -> {
-                MessageHandler messageHandler = new MessageHandler((String) msg,ctx.channel());
+                MessageHandler messageHandler = new MessageHandler((MessageProtocol) msg,ctx.channel());
                 String response = messageHandler.makeResponse();
-                ctx.writeAndFlush(Unpooled.copiedBuffer(response.getBytes()));
+                MessageProtocol messageProtocol=new MessageProtocol();
+                byte[] bytes = response.getBytes(Charset.forName("utf-8"));
+                messageProtocol.setLength(bytes.length);
+                messageProtocol.setContent(bytes);
+                ctx.writeAndFlush(messageProtocol);
             }).start();
         }
     }
 
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception
+    protected void channelRead0(ChannelHandlerContext ctx, MessageProtocol msg) throws Exception
     {
         System.out.println("channelRead0:" + ctx.channel().remoteAddress() + "-" + msg);
     }

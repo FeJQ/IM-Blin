@@ -12,5 +12,5 @@ public class Action
     public static final int GET_CHAT_HISTORY=7;
 
 
-    public static final int RECEIVED_FRIEND_MESSAGE=5000;
+    public static final int RECEIVED_FRIEND_MESSAGE=5001;
 }

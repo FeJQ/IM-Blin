@@ -36,7 +36,7 @@ public class Client extends TcpClient
         return messageQueue.next();
     }
 
-    // 标志客户端是否可以向服务器发送消息
+    // 标志客户端是否可以向服务器发送消息,如果为false,则不会对 发送消息队列 进行处理
     private boolean sendable = true;
     public boolean sendable()
     {
@@ -51,6 +51,7 @@ public class Client extends TcpClient
     private static Client client;
     private Client()
     {
+        recvMap=new HashMap<>();
         messageQueue = new MessageQueue();
         responseMap=new HashMap<>();
     }
@@ -65,6 +66,7 @@ public class Client extends TcpClient
         return client;
     }
 
+    // TcpClient唯一实例
     private static TcpClient tcpClient;
     public static TcpClient getTcpClient()
     {
@@ -75,6 +77,7 @@ public class Client extends TcpClient
         return tcpClient;
     }
 
+    // 全局保存用户Id
     private int currentUserId;
     public int getCurrentUserId()
     {
@@ -85,6 +88,7 @@ public class Client extends TcpClient
         this.currentUserId = currentUserId;
     }
 
+    // 全局保存用户token
     private String token;
     public String getToken()
     {

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 public class ChatViewModel
@@ -34,12 +35,16 @@ public class ChatViewModel
     private ChatActivity context;
     // 数据
     private List<ChatMessage> chatMessageList;
-    public List<ChatMessage> getChatMessageList(){
+
+    public List<ChatMessage> getChatMessageList()
+    {
         return chatMessageList;
     }
 
+
     // 消息列表 listView 适配器
     private ChatMessageListViewAdapter adapter;
+
     public ChatMessageListViewAdapter getAdapter()
     {
         return adapter;
@@ -49,7 +54,6 @@ public class ChatViewModel
     {
         this.context = context;
         chatMessageList = new ArrayList<>();
-
         adapter = new ChatMessageListViewAdapter(chatMessageList);
 
         // 获取历史消息
@@ -79,9 +83,7 @@ public class ChatViewModel
                     chatMessageList.add(chatMessage);
 
                     // 更新界面
-                    context.runOnUiThread(()->{
-                        adapter.notifyDataSetChanged();
-                    });
+                    context.updateList(chatMessageList);
 
                 }
             }
@@ -92,16 +94,19 @@ public class ChatViewModel
         });
     }
 
+    /**
+     * 发送新消息
+     */
     public void onMessageSend()
     {
-        EditText editTextContent=context.findViewById(R.id.edt_chat_content);
+        EditText editTextContent = context.findViewById(R.id.edt_chat_content);
         String contentText = editTextContent.getText().toString();
         if (contentText.isEmpty()) return;
 
         int chatId = context.getChatId();
         String chatType = context.getChatType();
 
-        User sender= new User(Client.getInstance().getCurrentUserId(),Client.getInstance().getToken());
+        User sender = new User(Client.getInstance().getCurrentUserId(), Client.getInstance().getToken());
 
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.senderId.set(Client.getInstance().getCurrentUserId());
@@ -110,21 +115,38 @@ public class ChatViewModel
         Date date = new Date();
         chatMessage.time.set(new SimpleDateFormat("yy-MM-dd HH:mm:ss").format(date));
         chatMessage.sendTime.set(date);
-        int type =  ChatMessage.SENDER;
+        int type = ChatMessage.SENDER;
         chatMessage.type.set(type);
+
+        Request request = new Request();
+
+        // 给消息标识uuid
+        chatMessage.uuid.set(request.getUuid());
+        chatMessage.status.set(ChatMessage.ChatMessageStatus.SENDING);
+
+        // 更新数据
         chatMessageList.add(chatMessage);
-
-        Request request=new Request();
-        request.sendTextMessage(sender,chatId,contentText,chatType).send((code, message, data) -> {
-            if(code==0)
-            {
-
-            }
-            else
-            {
-
-            }
-        });
+        // 更新界面
+        context.updateList(chatMessageList);
+        new Thread(() -> {
+            ChatMessage temp = chatMessage;
+            request.sendTextMessage(sender, chatId, contentText, chatType).send((code, message, data) -> {
+                String uuid = data.getString("uuid");
+                if (code == 0)
+                {
+                    if (temp.uuid.equals(uuid))
+                    {
+                        temp.status.set(ChatMessage.ChatMessageStatus.SEND_SUCCESSFUL);
+                        context.updateList(chatMessageList);
+                    }
+                }
+                else
+                {
+                    temp.status.set(ChatMessage.ChatMessageStatus.SEND_FAILED);
+                    context.updateList(chatMessageList);
+                }
+            });
+        }).start();
 
     }
 }

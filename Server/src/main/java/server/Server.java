@@ -7,6 +7,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import model.message.encodec.MessageDecoder;
+import model.message.encodec.MessageEncoder;
 
 public class Server
 {
@@ -41,10 +43,10 @@ public class Server
 //                                engine.setUseClientMode(false);
 //                                pipeline.addLast("ssl", new SslHandler(engine));
 //                            }
-                            // 添加解码器
-                            pipeline.addLast("decoder", new StringDecoder());
                             // 添加编码器
-                            pipeline.addLast("encoder", new StringEncoder());
+                            pipeline.addLast("encoder", new MessageEncoder());
+                            // 添加解码器
+                            pipeline.addLast("decoder", new MessageDecoder());
                             // 添加入站 handler
                             pipeline.addLast("in_handler", new InServerChannelHandler());
                             // 添加出站 handler

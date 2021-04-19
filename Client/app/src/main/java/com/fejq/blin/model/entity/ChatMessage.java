@@ -20,6 +20,8 @@ public class ChatMessage
     public static final int SENDER=0;
     public static final int RECEIVER=1;
 
+    public ObservableField<String> uuid=new ObservableField<>();
+
     public ObservableInt senderId=new ObservableInt();
     public ObservableField<String> senderName =new ObservableField();
     public ObservableField<String> content=new ObservableField();
