@@ -1,5 +1,7 @@
 package com.fejq.blin.model.message;
 
+import android.util.Log;
+
 import com.fejq.blin.common.Action;
 import com.fejq.blin.config.Const;
 import com.fejq.blin.model.Client;
@@ -17,12 +19,27 @@ import io.netty.channel.ChannelHandlerContext;
 
 public class MessageTask
 {
+    private static MessageTask instance;
+
+    private MessageTask()
+    {
+    }
+
+    public static MessageTask getInstance()
+    {
+        if (instance == null)
+        {
+            instance = new MessageTask();
+        }
+        return instance;
+    }
+
     /**
      * 检测消息队列,并发送消息
      *
      * @param ctx 上下文
      */
-    public static void sendMessageLooper(ChannelHandlerContext ctx)
+    public void sendMessageLooper(ChannelHandlerContext ctx)
     {
         new Thread(() -> {
             while (Client.getInstance().sendable())
@@ -64,6 +81,7 @@ public class MessageTask
                                 String msg = "请求超时";
                                 JSONObject data = new JSONObject();
                                 onRecvListener.onRecv(code, msg, data);
+                                Client.getInstance().getResponseMap().remove(request.getUuid());
                                 break;
                             }
                             JSONObject status = Client.getInstance().getResponseMap().get(request.getUuid());
@@ -83,6 +101,7 @@ public class MessageTask
                         {
                             //e.printStackTrace();
                             String s = e.getMessage();
+                            Client.getInstance().getResponseMap().remove(request.getUuid());
                         }
                     }
                 }).start();
@@ -95,11 +114,16 @@ public class MessageTask
     {
         void onRecvFriendMessage(String uuid, JSONObject status) throws JSONException;
     }
-    private static OnRecvFriendMessageListener onRecvFriendMessageListener;
-    public static void setOnRecvFriendMessageListener(OnRecvFriendMessageListener onRecvFriendMessageListener)
+
+    public OnRecvFriendMessageListener onRecvFriendMessageListener;
+
+    public void setOnRecvFriendMessageListener(OnRecvFriendMessageListener _onRecvFriendMessageListener)
     {
-        onRecvFriendMessageListener = onRecvFriendMessageListener;
+        Log.i("Blin", "set onRecvFriendMessageListener:" + onRecvFriendMessageListener);
+        onRecvFriendMessageListener = _onRecvFriendMessageListener;
+        Log.i("Blin", "set onRecvFriendMessageListener:" + onRecvFriendMessageListener);
     }
+
 
     /**
      * 处理服务器主动发来的消息
@@ -107,41 +131,59 @@ public class MessageTask
      * 如,联系人发来消息,如果我在线,则服务器会主动将消息推送过来,我将这一类消息称为主动消息,
      * 我使用大于5000的值来标识这类消息的code
      */
-    public static void receiveMessageLooper()
+    public void receiveMessageLooper()
     {
         new Thread(() -> {
-            Map<String, JSONObject> recvMap = Client.getInstance().getRecvMap();
-            Iterator<Map.Entry<String, JSONObject>> iterator = recvMap.entrySet().iterator();
-            while (iterator.hasNext())
+            while (true)
             {
-                Map.Entry<String, JSONObject> entry = iterator.next();
-                String uuid = entry.getKey();
-                JSONObject status = entry.getValue();
-                try
+                Map<String, JSONObject> recvMap = Client.getInstance().getRecvMap();
+                synchronized (this)
                 {
-                    int code = status.getInt("code");
-                    switch (code)
+                    Iterator<Map.Entry<String, JSONObject>> iterator = recvMap.entrySet().iterator();
+                    while (iterator.hasNext())
                     {
-                        case Action.RECEIVED_FRIEND_MESSAGE:
-                            onRecvFriendMessageListener.onRecvFriendMessage(entry.getKey(), entry.getValue());
-                            break;
-                        default:
-                            break;
+                        Log.i("Blin", "接收到服务器消息");
+                        Map.Entry<String, JSONObject> entry = iterator.next();
+                        String uuid = entry.getKey();
+                        Log.i("Blin", "uuid:" + uuid);
+                        JSONObject status = entry.getValue();
+                        try
+                        {
+                            int code = status.getInt("code");
+                            Log.i("Blin", "code:" + code);
+                            switch (code)
+                            {
+                                case Action.RECEIVED_FRIEND_MESSAGE:
+                                    new Thread(()->{
+                                        try
+                                        {
+                                            onRecvFriendMessageListener.onRecvFriendMessage(entry.getKey(), entry.getValue());
+                                        }
+                                        catch (JSONException e)
+                                        {
+                                            e.printStackTrace();
+                                        }
+                                    }).start();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        catch (JSONException e)
+                        {
+                            e.printStackTrace();
+                        }
+                        iterator.remove();
                     }
                 }
-                catch (JSONException e)
+                try
+                {
+                    Thread.sleep(Const.IDLE_TIME);
+                }
+                catch (Exception e)
                 {
                     e.printStackTrace();
                 }
-                iterator.remove();
-            }
-            try
-            {
-                Thread.sleep(Const.IDLE_TIME);
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
             }
         }).start();
     }

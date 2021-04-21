@@ -65,17 +65,17 @@ public class ChatViewModel
                 JSONArray chatHistoryArray = data.getJSONArray("chatHistoryList");
                 for (int i = 0; i < chatHistoryArray.length(); i++)
                 {
-                    JSONObject node = chatHistoryArray.getJSONObject(i);
-                    int senderId = node.getInt("senderId");
-                    String senderName = node.getString("senderName");
-                    String content = node.getString("content");
-                    long sendTime = node.getLong("sendTime");
+                    JSONObject item = chatHistoryArray.getJSONObject(i);
+                    int senderId = item.getInt("senderId");
+                    String senderName = item.getString("senderName");
+                    String content = item.getString("content");
+                    Date sendTime = new Date(item.getLong("sendTime"));
                     ChatMessage chatMessage = new ChatMessage();
                     chatMessage.senderId.set(senderId);
                     chatMessage.senderName.set(senderName);
                     chatMessage.content.set(content);
-                    chatMessage.time.set(new SimpleDateFormat("yy-MM-dd HH:mm:ss").format(new Date(sendTime)));
-                    chatMessage.sendTime.set(new Date(sendTime));
+                    chatMessage.time.set(new SimpleDateFormat("yy-MM-dd HH:mm:ss").format(sendTime));
+                    chatMessage.sendTime.set(sendTime);
                     int type = Client.getInstance().getCurrentUserId() == senderId ? ChatMessage.SENDER : ChatMessage.RECEIVER;
                     chatMessage.type.set(type);
 
@@ -101,6 +101,7 @@ public class ChatViewModel
     {
         EditText editTextContent = context.findViewById(R.id.edt_chat_content);
         String contentText = editTextContent.getText().toString();
+        editTextContent.setText("");
         if (contentText.isEmpty()) return;
 
         int chatId = context.getChatId();

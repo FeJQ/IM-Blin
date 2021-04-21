@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import common.Action;
 import common.RequestMapping;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import model.message.*;
 
 import java.lang.annotation.Annotation;
@@ -14,12 +15,12 @@ import java.util.List;
 public class MessageHandler
 {
     private String message;
-    private Channel channel;
+    private ChannelHandlerContext ctx;
 
-    public MessageHandler(MessageProtocol message, Channel channel)
+    public MessageHandler(MessageProtocol message, ChannelHandlerContext ctx)
     {
         this.message = new String(message.getContent(), Charset.forName("utf-8"));
-        this.channel=channel;
+        this.ctx=ctx;
     }
 
     /**
@@ -35,8 +36,8 @@ public class MessageHandler
         JSONObject data = json.getJSONObject("data");
         String response = null;
 
-        System.out.println("message:"+data.toJSONString());
-        Message messageObj = MessageFactory.make(action, uuid, data,channel);
+        //System.out.println("message:"+data.toJSONString());
+        Message messageObj = MessageFactory.make(action, uuid, data,ctx);
         response=messageObj.handle();
         return response;
     }

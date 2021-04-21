@@ -40,17 +40,17 @@ public class Service
 
     }
 
-    public static User getMainUser()
-    {
-        Cursor cursor = App.database.query("user", null, "mainUser=?", new String[]{"true"}, null, null, null, null);
-        if (cursor.getCount() == 0)
-            return null;
-        int userId = cursor.getInt(cursor.getColumnIndex("userId"));
-        String userName = cursor.getString(cursor.getColumnIndex("userName"));
-        String token = cursor.getString(cursor.getColumnIndex("token"));
-        User user = new User(userId, userName, token);
-        return user;
-    }
+//    public static User getMainUser()
+//    {
+//        Cursor cursor = App.database.query("user", null, "mainUser=?", new String[]{"true"}, null, null, null, null);
+//        if (cursor.getCount() == 0)
+//            return null;
+//        int userId = cursor.getInt(cursor.getColumnIndex("userId"));
+//        String userName = cursor.getString(cursor.getColumnIndex("userName"));
+//        String token = cursor.getString(cursor.getColumnIndex("token"));
+//        User user = new User(userId, userName, token);
+//        return user;
+//    }
 
 
 }

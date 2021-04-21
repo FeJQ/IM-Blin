@@ -1,5 +1,9 @@
 package util;
 
+import common.DbResult;
+
+
+
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,7 +18,6 @@ import java.util.Properties;
  * JDBC数据库操作公共类
  *
  * @author pan_junbiao
- *
  */
 public class DBHelper
 {
@@ -48,10 +51,12 @@ public class DBHelper
             // 加载数据库驱动类
             Class.forName(DRIVER_CLASS);
 
-        } catch (ClassNotFoundException cnfe)
+        }
+        catch (ClassNotFoundException cnfe)
         {
             cnfe.printStackTrace();
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             ex.printStackTrace();
         }
@@ -71,7 +76,8 @@ public class DBHelper
             // 获取数据库连接对象
             conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
-        } catch (SQLException sqle)
+        }
+        catch (SQLException sqle)
         {
             sqle.printStackTrace();
         }
@@ -79,31 +85,33 @@ public class DBHelper
         return conn;
     }
 
+
+
     /**
      * 查询列表
      *
      * @param sql 查询SQL语句
      * @return 结果集
      */
-    public static ResultSet executeQuery(String sql)
+    public static DbResult executeQuery(String sql)
     {
         Connection conn = null;
         PreparedStatement preStmt = null;
         ResultSet res = null;
-
+        DbResult dbResult=null;
         try
         {
             conn = getConnection();
             preStmt = conn.prepareStatement(sql);
             res = preStmt.executeQuery();
+            dbResult =new DbResult(res,preStmt,conn);
 
-        } catch (SQLException sqle)
+        }
+        catch (SQLException sqle)
         {
             sqle.printStackTrace();
-            closeResource(res, preStmt, conn);
         }
-
-        return res;
+        return dbResult;
     }
 
     /**
@@ -113,26 +121,26 @@ public class DBHelper
      * @param params 参数集合
      * @return 结果集
      */
-    public static ResultSet executeQuery(String sql, List<Object> params)
+    public static DbResult executeQuery(String sql, List<Object> params)
     {
         Connection conn = null;
         PreparedStatement preStmt = null;
         ResultSet res = null;
-
+        DbResult dbResult=null;
         try
         {
             conn = getConnection();
             preStmt = conn.prepareStatement(sql);
             setParams(preStmt, params);
             res = preStmt.executeQuery();
-
-        } catch (SQLException sqle)
+            dbResult=new DbResult(res,preStmt,conn);
+        }
+        catch (SQLException sqle)
         {
             sqle.printStackTrace();
-            closeResource(res, preStmt, conn);
-        }
 
-        return res;
+        }
+        return dbResult;
     }
 
     /**
@@ -153,10 +161,12 @@ public class DBHelper
             preStmt = conn.prepareStatement(sql);
             count = preStmt.executeUpdate();
 
-        } catch (SQLException sqle)
+        }
+        catch (SQLException sqle)
         {
             sqle.printStackTrace();
-        } finally
+        }
+        finally
         {
             closeResource(preStmt, conn);
         }
@@ -164,35 +174,61 @@ public class DBHelper
         return count;
     }
 
+    public static int executeOperate(String sql, List<Object> params)
+    {
+        return executeOperate(sql, params, false);
+    }
+
     /**
      * 执行操作
      *
-     * @param sql    执行SQL语句
-     * @param params 参数集合
+     * @param sql              执行SQL语句
+     * @param params           参数集合
+     * @param returnPrimaryKey 是否需要接收生成数据的主键
      * @return 受影响条数
      */
-    public static int executeOperate(String sql, List<Object> params)
+    public static int executeOperate(String sql, List<Object> params, boolean returnPrimaryKey)
     {
-        int count = 0;
+        int result = 0;
         Connection conn = null;
         PreparedStatement preStmt = null;
-
         try
         {
             conn = getConnection();
-            preStmt = conn.prepareStatement(sql);
-            setParams(preStmt, params);
-            count = preStmt.executeUpdate();
+            if (returnPrimaryKey)
+            {
+                preStmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            }
+            else
+            {
+                preStmt = conn.prepareStatement(sql);
+            }
 
-        } catch (SQLException sqle)
+            setParams(preStmt, params);
+            int temp = preStmt.executeUpdate();
+            if (returnPrimaryKey)
+            {
+                ResultSet generatedKeys = preStmt.getGeneratedKeys();
+                if (generatedKeys.next())
+                {
+                    int id = generatedKeys.getInt(1);
+                    result = id;
+                }
+            }
+            else
+            {
+                result = temp;
+            }
+        }
+        catch (SQLException sqle)
         {
             sqle.printStackTrace();
-        } finally
+        }
+        finally
         {
             closeResource(preStmt, conn);
         }
-
-        return count;
+        return result;
     }
 
     /**
@@ -218,10 +254,12 @@ public class DBHelper
                 resObj = res.getObject(1);
             }
 
-        } catch (SQLException sqle)
+        }
+        catch (SQLException sqle)
         {
             sqle.printStackTrace();
-        } finally
+        }
+        finally
         {
             closeResource(res, preStmt, conn);
         }
@@ -254,10 +292,12 @@ public class DBHelper
                 resObj = res.getObject(1);
             }
 
-        } catch (SQLException sqle)
+        }
+        catch (SQLException sqle)
         {
             sqle.printStackTrace();
-        } finally
+        }
+        finally
         {
             closeResource(res, preStmt, conn);
         }
@@ -270,7 +310,7 @@ public class DBHelper
      *
      * @param res ResultSet对象
      */
-    private static void closeResource(ResultSet res)
+    public static void closeResource(ResultSet res)
     {
         try
         {
@@ -280,7 +320,8 @@ public class DBHelper
                 res.close();
             }
 
-        } catch (SQLException sqle)
+        }
+        catch (SQLException sqle)
         {
             sqle.printStackTrace();
         }
@@ -292,7 +333,7 @@ public class DBHelper
      * @param stmt Statement对象
      * @param conn Connection对象
      */
-    private static void closeResource(Statement stmt, Connection conn)
+    public static void closeResource(Statement stmt, Connection conn)
     {
         try
         {
@@ -308,7 +349,8 @@ public class DBHelper
                 conn.close();
             }
 
-        } catch (SQLException sqle)
+        }
+        catch (SQLException sqle)
         {
             sqle.printStackTrace();
         }
@@ -321,7 +363,7 @@ public class DBHelper
      * @param stmt Statement对象
      * @param conn Connection对象
      */
-    private static void closeResource(ResultSet res, Statement stmt, Connection conn)
+    public static void closeResource(ResultSet res, Statement stmt, Connection conn)
     {
         try
         {
@@ -343,7 +385,8 @@ public class DBHelper
                 conn.close();
             }
 
-        } catch (SQLException sqle)
+        }
+        catch (SQLException sqle)
         {
             sqle.printStackTrace();
         }

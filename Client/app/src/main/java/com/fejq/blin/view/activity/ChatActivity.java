@@ -15,14 +15,23 @@ import android.widget.ListView;
 
 import com.fejq.blin.R;
 import com.fejq.blin.databinding.ActivityLoginBinding;
+import com.fejq.blin.model.Client;
+import com.fejq.blin.model.entity.Chat;
 import com.fejq.blin.model.entity.ChatMessage;
+import com.fejq.blin.model.message.MessageTask;
 import com.fejq.blin.view.adapter.ChatMessageListViewAdapter;
 import com.fejq.blin.view.fragment.chat.ChatInputFragment;
 import com.fejq.blin.view.fragment.chat.ChatTitleFragment;
 import com.fejq.blin.viewModel.ChatViewModel;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class ChatActivity extends AppCompatActivity
 {
@@ -88,6 +97,7 @@ public class ChatActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+
         // 获取传过来的chatId
         chatId = getIntent().getIntExtra("chatId", 0);
         chatType = getIntent().getStringExtra("chatType");
@@ -101,13 +111,35 @@ public class ChatActivity extends AppCompatActivity
         inputFragment = (ChatInputFragment) fragmentManager.findFragmentById(R.id.chat_input_fragment);
 
         // 设置适配器
-        ListView listView = (ListView) findViewById(R.id.chat_message_list);
+        ListView listView =  findViewById(R.id.chat_message_list);
         listView.setAdapter(viewModel.getAdapter());
     }
 
-    public void addMessage(ChatMessage chatMessage)
+    @Override
+    protected void onStart()
     {
-        List<ChatMessage> chatMessageList = viewModel.getChatMessageList();
-        chatMessageList.add(chatMessage);
+        super.onStart();
+        MessageTask.getInstance().setOnRecvFriendMessageListener((uuid,status)->{
+            Log.i("Blin","ChatActivity 收到好友消息" );
+            int code = status.getInt("code");
+            String message = status.getString("message");
+            JSONObject data = status.getJSONObject("data");
+            int senderId = data.getInt("senderId");
+            int receiverId = data.getInt("receiverId");
+            String content = data.getString("content");
+            Date sendTime = new Date(data.getLong("sendTime"));
+            String senderName = data.getString("senderName");
+            List<ChatMessage> chatMessageList = viewModel.getChatMessageList();
+            ChatMessage chatMessage=new ChatMessage();
+            chatMessage.senderId.set(senderId);
+            chatMessage.senderName.set(senderName);
+            chatMessage.content.set(content);
+            chatMessage.time.set(new SimpleDateFormat("yy-MM-dd HH:mm:ss").format(sendTime));
+            chatMessage.sendTime.set(sendTime);
+            int type = Client.getInstance().getCurrentUserId() == senderId ? ChatMessage.SENDER : ChatMessage.RECEIVER;
+            chatMessage.type.set(type);
+            chatMessageList.add(chatMessage);
+            updateList(chatMessageList);
+        });
     }
 }

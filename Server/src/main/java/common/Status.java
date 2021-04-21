@@ -35,6 +35,7 @@ public class Status
         public static final CodeDescriptor USER_NAME_ALREADY_EXIST = new CodeDescriptor(4, "用户名已存在");
         public static final CodeDescriptor USER_NAME_NOT_VALID = new CodeDescriptor(5, "用户名不合法");
         public static final CodeDescriptor INVALID_TOKEN = new CodeDescriptor(6, "无效的身份信息");
+        public static final CodeDescriptor USER_ALREADY_LOGIN=new CodeDescriptor(7,"该用户已经登录");
 
         public static final CodeDescriptor UNKNOWN_ERROR = new CodeDescriptor(500, "未知错误");
 

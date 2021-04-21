@@ -5,13 +5,16 @@ import common.Action;
 import common.Status;
 import dao.UserDao;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import model.sql.ChatEntry;
 import model.sql.FriendMessage;
 import model.sql.UserInfo;
+import server.MessageProtocol;
 import server.session.SessionFactory;
 import util.TokenUtil;
 import util.TokenUtil.Token;
 
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,11 +31,11 @@ public class UserService extends BaseService
      *
      * @param userName 用户名
      * @param password 密码
-     * @param channel 该用户的通道
+     * @param ctx 该用户的通道
      * @return 状态信息
      * @throws SQLException
      */
-    public static Status loginFirst(String userName, String password, Channel channel)
+    public static Status loginFirst(String userName, String password, ChannelHandlerContext ctx)
     {
         Status status;
         try
@@ -43,29 +46,31 @@ public class UserService extends BaseService
 
             if (userInfoList.size() == 0)
             {
-                status = new Status(Code.USER_NOT_EXIST);
-                return status;
+                return new Status(Code.USER_NOT_EXIST);
+            }
+            // 检查用户是否已登录
+            if(SessionFactory.getSession().getChannel(userInfo.getUserId())!=null)
+            {
+                return new Status(Code.USER_ALREADY_LOGIN);
             }
             // 检查密码是否正确
             if (!password.equals(userInfo.getPassword()))
             {
-                status = new Status(Code.INCORRECT_USER_NAME_OR_PASSWORD);
-                return status;
+                return new Status(Code.INCORRECT_USER_NAME_OR_PASSWORD);
             }
             // 生成Token
             Token token = TokenUtil.make(userName, password);
             int count = UserDao.updateUserToken(userInfo.getUserId(), token);
             if (count != 1)
             {
-                status = new Status(Code.UNKNOWN_ERROR);
-                return status;
+                return new Status(Code.UNKNOWN_ERROR);
             }
             Map<String, Object> dataMap = new HashMap<>();
             dataMap.put("userId", userInfo.getUserId());
             dataMap.put("token", token.getValue());
             status = new Status(Code.OK.code(), "登录成功", dataMap);
             // 绑定用户 session
-            SessionFactory.getSession().bind(userInfo.getUserId(), channel);
+            SessionFactory.getSession().bind(userInfo.getUserId(), ctx);
             return status;
         }
         catch (Exception e)
@@ -82,11 +87,11 @@ public class UserService extends BaseService
      *
      * @param userId 用户Id
      * @param token  令牌
-     * @param channel 该用户的通道
+     * @param ctx 该用户的通道
      * @return 状态信息
      * @throws SQLException
      */
-    public static Status loginWithToken(int userId, String token, Channel channel)
+    public static Status loginWithToken(int userId, String token, ChannelHandlerContext ctx)
     {
         Status status;
         int result = checkToken(userId, token);
@@ -96,8 +101,13 @@ public class UserService extends BaseService
         }
         else if (result == OK)
         {
+            // 检查用户是否已登录
+            if(SessionFactory.getSession().getChannel(userId)!=null)
+            {
+                return new Status(Code.USER_ALREADY_LOGIN);
+            }
             // 绑定用户session
-            SessionFactory.getSession().bind(userId,channel);
+            SessionFactory.getSession().bind(userId,ctx);
             return new Status(Code.OK, "登录成功");
         }
         else
@@ -282,8 +292,8 @@ public class UserService extends BaseService
         FriendMessage friendMessage = UserDao.insertFriendMessage(userId, friendId, content);
         if (friendMessage!=null)
         {
-            Channel channel = SessionFactory.getSession().getChannel(friendId);
-            if(channel!=null)
+            ChannelHandlerContext ctx = SessionFactory.getSession().getChannel(friendId);
+            if(ctx!=null)
             {
                 Map<String,Object> root=new HashMap<>();
                 String uuid = UuidUtil.make();
@@ -302,7 +312,12 @@ public class UserService extends BaseService
                 data.put("sendTime",friendMessage.getSendTime().getTime());
                 data.put("senderName",friendMessage.getSenderName());
                 String jsonString = JSON.toJSONString(root);
-                channel.writeAndFlush(jsonString);
+
+                MessageProtocol messageProtocol=new MessageProtocol();
+                byte[] bytes = jsonString.getBytes(Charset.forName("utf-8"));
+                messageProtocol.setLength(bytes.length);
+                messageProtocol.setContent(bytes);
+                ctx.writeAndFlush(messageProtocol);
             }
             return new Status(Code.OK, "发送成功");
         }

@@ -11,6 +11,7 @@ import java.util.Map;
 
 public class Client extends TcpClient
 {
+    public static boolean isSsl=true;
     // 客户端收到的消息Map
     private Map<String, JSONObject> recvMap;
     public Map<String, JSONObject> getRecvMap()

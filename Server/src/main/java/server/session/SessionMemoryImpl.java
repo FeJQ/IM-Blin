@@ -1,42 +1,43 @@
 package server.session;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionMemoryImpl implements Session {
 
-    private final Map<Integer, Channel> userIdChannelMap = new ConcurrentHashMap<>();
-    private final Map<Channel, Integer> channelUserIdMap = new ConcurrentHashMap<>();
-    private final Map<Channel,Map<String,Object>> channelAttributesMap = new ConcurrentHashMap<>();
+    private final Map<Integer, ChannelHandlerContext> userIdChannelMap = new ConcurrentHashMap<>();
+    private final Map<ChannelHandlerContext, Integer> channelUserIdMap = new ConcurrentHashMap<>();
+    private final Map<ChannelHandlerContext,Map<String,Object>> channelAttributesMap = new ConcurrentHashMap<>();
 
     @Override
-    public void bind(int userId,Channel channel) {
-        userIdChannelMap.put(userId, channel);
-        channelUserIdMap.put(channel, userId);
-        channelAttributesMap.put(channel, new ConcurrentHashMap<>());
+    public void bind(int userId, ChannelHandlerContext ctx) {
+        userIdChannelMap.put(userId, ctx);
+        channelUserIdMap.put(ctx, userId);
+        channelAttributesMap.put(ctx, new ConcurrentHashMap<>());
     }
 
     @Override
-    public void unbind(Channel channel) {
-        int userId  = channelUserIdMap.remove(channel);
+    public void unbind(ChannelHandlerContext ctx) {
+        int userId  = channelUserIdMap.remove(ctx);
         userIdChannelMap.remove(userId);
-        channelAttributesMap.remove(channel);
+        channelAttributesMap.remove(ctx);
     }
 
     @Override
-    public Object getAttribute(Channel channel, String name) {
-        return channelAttributesMap.get(channel).get(name);
+    public Object getAttribute(ChannelHandlerContext ctx, String name) {
+        return channelAttributesMap.get(ctx).get(name);
     }
 
     @Override
-    public void setAttribute(Channel channel, String name, Object value) {
-        channelAttributesMap.get(channel).put(name, value);
+    public void setAttribute(ChannelHandlerContext ctx, String name, Object value) {
+        channelAttributesMap.get(ctx).put(name, value);
     }
 
     @Override
-    public Channel getChannel(int userId) {
+    public ChannelHandlerContext getChannel(int userId) {
         return userIdChannelMap.get(userId);
     }
 

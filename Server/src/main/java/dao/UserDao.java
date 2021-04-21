@@ -1,5 +1,6 @@
 package dao;
 
+import common.DbResult;
 import model.sql.ChatEntry;
 import model.sql.FriendMessage;
 import model.sql.GroupMessage;
@@ -15,13 +16,15 @@ import java.util.List;
 
 public class UserDao
 {
-    public static List<UserInfo> selectUserByUserName(String userName)
+    public static List<UserInfo> selectUserByUserName(String userName) throws SQLException
     {
         String sql = "select * from user_info where userName=?";
         List<Object> params = new ArrayList<>();
         params.add(userName);
-        ResultSet res = DBHelper.executeQuery(sql, params);
+        DbResult dbResult = DBHelper.executeQuery(sql, params);
+        ResultSet res = dbResult.getResultSet();
         List<UserInfo> userInfoList = ResultSetUtil.toList(res, UserInfo.class);
+        dbResult.close();
         return userInfoList;
     }
 
@@ -30,8 +33,10 @@ public class UserDao
         String sql = "select * from user_info where userId=?";
         List<Object> params = new ArrayList<>();
         params.add(userId);
-        ResultSet res = DBHelper.executeQuery(sql, params);
+        DbResult dbResult = DBHelper.executeQuery(sql, params);
+        ResultSet res = dbResult.getResultSet();
         List<UserInfo> userInfoList = ResultSetUtil.toList(res, UserInfo.class);
+        dbResult.close();
         return userInfoList;
     }
 
@@ -51,8 +56,10 @@ public class UserDao
         String sql = "select * from user_info where token=?";
         List<Object> params = new ArrayList<>();
         params.add(token);
-        ResultSet resultSet = DBHelper.executeQuery(sql, params);
-        List<UserInfo> userInfoList = ResultSetUtil.toList(resultSet, UserInfo.class);
+        DbResult dbResult = DBHelper.executeQuery(sql, params);
+        ResultSet res = dbResult.getResultSet();
+        List<UserInfo> userInfoList = ResultSetUtil.toList(res, UserInfo.class);
+        dbResult.close();
         return userInfoList;
     }
 
@@ -80,16 +87,18 @@ public class UserDao
         String sql = "select chatId,chat_entry.userId,entryId,entryType,userName as entryName from user_info inner join chat_entry on user_info.userId=chat_entry.entryId  where chat_entry.userId=? and user_info.userId in (select chat_entry.entryId from chat_entry where chat_entry.entryType='联系人')";
         List<Object> params = new ArrayList<>();
         params.add(userId);
-        ResultSet resultSet = DBHelper.executeQuery(sql, params);
-        List<ChatEntry> userChatEntryList = ResultSetUtil.toList(resultSet, ChatEntry.class);
-
+        DbResult dbResult = DBHelper.executeQuery(sql, params);
+        ResultSet res = dbResult.getResultSet();
+        List<ChatEntry> userChatEntryList = ResultSetUtil.toList(res, ChatEntry.class);
+        res.close();
 
         sql = "select chatId,chat_entry.userId,entryId,entryType,groupName as entryName from group_info inner join chat_entry on group_info.groupId=chat_entry.entryId  where chat_entry.userId=? and group_info.groupId in (select chat_entry.entryId from chat_entry where chat_entry.entryType='群组')";
         params = new ArrayList<>();
         params.add(userId);
-        resultSet = DBHelper.executeQuery(sql, params);
-        List<ChatEntry> groupChatEntryList = ResultSetUtil.toList(resultSet, ChatEntry.class);
-
+        dbResult = DBHelper.executeQuery(sql, params);
+        res = dbResult.getResultSet();
+        List<ChatEntry> groupChatEntryList = ResultSetUtil.toList(res, ChatEntry.class);
+        res.close();
         List<ChatEntry> chatEntryList = new ArrayList<>();
         for (ChatEntry chatEntry : userChatEntryList)
         {
@@ -112,7 +121,8 @@ public class UserDao
         params.add(friendId);
         params.add(userId);
         params.add(maxCount);
-        ResultSet resultSet = DBHelper.executeQuery(sql, params);
+        DbResult dbResult = DBHelper.executeQuery(sql, params);
+        ResultSet resultSet = dbResult.getResultSet();
         List<FriendMessage> friendMessageList = new ArrayList<>();
         try
         {
@@ -134,7 +144,7 @@ public class UserDao
         {
             e.printStackTrace();
         }
-
+        dbResult.close();
         return friendMessageList;
     }
 
@@ -152,36 +162,38 @@ public class UserDao
         params.add(userId);
         params.add(friendId);
         params.add(content);
-        int count = DBHelper.executeOperate(sql, params);
-        sql="SELECT LAST_INSERT_ID() AS id";
-        ResultSet resultSet=DBHelper.executeQuery(sql);
-        FriendMessage friendMessage=null;
+        int result = DBHelper.executeOperate(sql, params, true);
+        FriendMessage friendMessage = null;
         try
         {
-            resultSet.next();
-            int messageId = resultSet.getInt("id");
-            sql = " select *,userName as senderName from friend_message inner join user_info on friend_message.senderId=user_info.userId where friendMessageId=?";
-            params = new ArrayList<>();
-            params.add(messageId);
-            resultSet = DBHelper.executeQuery(sql, params);
-            if(resultSet.next())
+            if (result != 0)
             {
-                friendMessage = new FriendMessage();
-                friendMessage.setFriendMessageId(resultSet.getInt("friendMessageId"));
-                friendMessage.setSenderId(resultSet.getInt("senderId"));
-                friendMessage.setReceiverId(resultSet.getInt("receiverId"));
-                friendMessage.setMessageTypeId(resultSet.getInt("messageTypeId"));
-                friendMessage.setSendTime(resultSet.getTimestamp("sendTime"));
-                friendMessage.setHaveRead(resultSet.getBoolean("haveRead"));
-                friendMessage.setContent(resultSet.getString("content"));
-                friendMessage.setSenderName(resultSet.getString("senderName"));
+                int messageId = result;
+                sql = " select *,userName as senderName from friend_message inner join user_info on friend_message.senderId=user_info.userId where friendMessageId=?";
+                params = new ArrayList<>();
+                params.add(messageId);
+                DbResult dbResult = DBHelper.executeQuery(sql, params);
+                ResultSet resultSet = dbResult.getResultSet();
+                if (resultSet.next())
+                {
+                    friendMessage = new FriendMessage();
+                    friendMessage.setFriendMessageId(resultSet.getInt("friendMessageId"));
+                    friendMessage.setSenderId(resultSet.getInt("senderId"));
+                    friendMessage.setReceiverId(resultSet.getInt("receiverId"));
+                    friendMessage.setMessageTypeId(resultSet.getInt("messageTypeId"));
+                    friendMessage.setSendTime(resultSet.getTimestamp("sendTime"));
+                    friendMessage.setHaveRead(resultSet.getBoolean("haveRead"));
+                    friendMessage.setContent(resultSet.getString("content"));
+                    friendMessage.setSenderName(resultSet.getString("senderName"));
+                }
+                dbResult.close();
             }
-
         }
         catch (SQLException e)
         {
             e.printStackTrace();
         }
+
         return friendMessage;
     }
 

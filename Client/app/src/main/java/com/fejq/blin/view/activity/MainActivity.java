@@ -38,9 +38,9 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
     //默认页面
     private static final int DEFAULT_PAGE = 0;
     // 页面索引
-    private static final int CHAT_PAGE_INDEX=0;
-    private static final int FRIEND_PAGE_INDEX=1;
-    private static final int MINE_PAGE_INDEX=2;
+    private static final int CHAT_PAGE_INDEX = 0;
+    private static final int FRIEND_PAGE_INDEX = 1;
+    private static final int MINE_PAGE_INDEX = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -48,34 +48,56 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 登录成功后才会跳转到该Activity
-        MessageTask.setOnRecvFriendMessageListener((uuid, status) -> {
-            int code=status.getInt("code");
+        titleFragment = (TitleFragment) fragmentManager.findFragmentById(R.id.main_top_fragment);
+        tabFragment = new TabFragment();
+        tabFragment.setOnTabClickListenser(tab -> {
+            setCurrentItem(tab);
+        });
+        fragmentManager.beginTransaction().replace(R.id.main_bottom_fragment, tabFragment).commit();
+        viewPager = findViewById(R.id.viewPager);
+        viewPager.setAdapter(adapter = new ViewPagerAdapter(fragmentManager));
+        viewPager.addOnPageChangeListener(this);
+
+        // 给ViewPager设置缓存界面数 有几页缓存几页
+        viewPager.setOffscreenPageLimit(3);
+        setCurrentItem(DEFAULT_PAGE);
+    }
+
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
+        Log.i("Blin","ChatActivity.onStart()" );
+        // 登录成功后才会跳转到该Activity,故在此处设置收到好友消息的回调
+        MessageTask.getInstance().setOnRecvFriendMessageListener((uuid, status) -> {
+            Log.i("Blin","MainActivity收到好友消息" );
+            int code = status.getInt("code");
             String message = status.getString("message");
             JSONObject data = status.getJSONObject("data");
             int senderId = data.getInt("senderId");
-            int receiverId=data.getInt("receiverId");
+            int receiverId = data.getInt("receiverId");
             String content = data.getString("content");
-            Date sendTime=new Date(data.getLong("sendTime"));
-            String senderName=data.getString("senderName");
+            Date sendTime = new Date(data.getLong("sendTime"));
+            String senderName = data.getString("senderName");
 
-            ChatPagerFragment chatPagerFragment = (ChatPagerFragment)adapter.getItem(CHAT_PAGE_INDEX);
+            ChatPagerFragment chatPagerFragment = (ChatPagerFragment) adapter.getItem(CHAT_PAGE_INDEX);
             List<Chat> chatList = chatPagerFragment.getViewModel().getChatList();
-            for (int i = 0; i <chatList.size() ; i++)
+            for (int i = 0; i < chatList.size(); i++)
             {
                 Chat chat = chatList.get(i);
-                if(chat.chatId.get()== senderId || chat.chatId.get()==receiverId)
+                if (chat.chatId.get() == senderId || chat.chatId.get() == receiverId)
                 {
                     // 该聊天项已存在,更新信息
                     chat.lastMessage.set(content);
                     chat.lastMessageTime.set(sendTime);
+                    chatPagerFragment.updateList(chatList);
                     return;
                 }
             }
             // 聊天项不存在,创建之
-            Chat chat=new Chat();
+            Chat chat = new Chat();
             chat.chatName.set(senderName);
-            if(Client.getInstance().getCurrentUserId()==senderId)
+            if (Client.getInstance().getCurrentUserId() == senderId)
             {
                 chat.chatId.set(receiverId);
             }
@@ -86,23 +108,8 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
             chat.lastMessage.set(content);
             chat.lastMessageTime.set(sendTime);
             chatList.add(chat);
+            chatPagerFragment.updateList(chatList);
         });
-
-
-        titleFragment = (TitleFragment) fragmentManager.findFragmentById(R.id.main_top_fragment);
-        tabFragment = new TabFragment();
-        tabFragment.setOnTabClickListenser(tab -> {
-            setCurrentItem(tab);
-        });
-        fragmentManager.beginTransaction().replace(R.id.main_bottom_fragment, tabFragment).commit();
-        viewPager = (ViewPager) findViewById(R.id.viewPager);
-        viewPager.setAdapter(adapter = new ViewPagerAdapter(fragmentManager));
-        viewPager.addOnPageChangeListener(this);
-
-
-        // 给ViewPager设置缓存界面数 有几页缓存几页
-        viewPager.setOffscreenPageLimit(3);
-        setCurrentItem(DEFAULT_PAGE);
     }
 
     @Override
